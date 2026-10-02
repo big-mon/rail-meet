@@ -1,9 +1,10 @@
+import {formatKm as km} from './distance.mjs';
 import {expeditionReward} from './rewards.mjs';
 import {motionPath,pointAt} from './motion.mjs';
 import {validate,recommend} from './engine.mjs';
 const $=id=>document.getElementById(id), colors=['#2169be','#bf4c1d','#8a45b5','#147b61'],letters=['A','B','C','D'];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const km=n=>n.toFixed(1),ll=p=>[p[1],p[0]];
+const ll=p=>[p[1],p[0]];
 let data,origins=['千葉','横浜'],candidates=[],selected=0,visible=[],map,overlay,routeBounds,motionLayer,motionFrame;
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 reducedMotion.addEventListener('change',stopMotion);
@@ -146,8 +147,8 @@ function playMotion(){
 }
 
 function renderReward(reward){
- const {max,winners,roundedTie}=reward;
- $('reward').innerHTML=winners.length?`<div class="reward-heading"><img class="reward-crown" src="crown.svg" alt="王冠" width="32" height="28"><strong>遠征の勇者</strong><span class="reward-people">${winners.map(i=>`<span class="person-dot" data-winner="${letters[i]}" style="--person:${colors[i]}">${letters[i]}</span>`).join('')}</span></div><p class="reward-message">${[...new Set(winners.map(i=>origins[i]))].map(esc).join('・')}からの遠征プランに、拍手！</p><p class="reward-rule">最長 ${km(max)} km${winners.length>1?' · みんなが勇者！':''}</p>${roundedTie?'<p class="reward-rounding">表示は同じ距離でも、丸める前の計算値で表彰しています。</p>':''}`:'<strong class="nearby-party">ご近所パーティー！</strong><p class="reward-message">みんな同じ駅。遠征なしで集まれるね！</p>';
+ const {max,winners}=reward;
+ $('reward').innerHTML=winners.length?`<div class="reward-heading"><img class="reward-crown" src="crown.svg" alt="王冠" width="32" height="28"><strong>遠征の勇者</strong><span class="reward-people">${winners.map(i=>`<span class="person-dot" data-winner="${letters[i]}" style="--person:${colors[i]}">${letters[i]}</span>`).join('')}</span></div><p class="reward-message">${[...new Set(winners.map(i=>origins[i]))].map(esc).join('・')}からの遠征プランに、拍手！</p><p class="reward-rule">最長 ${km(max)} km${winners.length>1?' · みんなが勇者！':''}</p>`:'<strong class="nearby-party">ご近所パーティー！</strong><p class="reward-message">みんな同じ駅。遠征なしで集まれるね！</p>';
 }
 function celebrate(){
  $('meeting').classList.add('arrived');$('celebration').classList.remove('cheering');$('celebration').classList.add('celebrated');

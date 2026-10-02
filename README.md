@@ -24,14 +24,14 @@ http://localhost:4173 を開きます。通常利用にnpm installやビルド�
 
 候補を選ぶと経路と距離が更新されます。「集合場所を探す」はその場で再計算し、ページをスクロールしません。A–Dのコマは実際の経路を短くたどりますが、速度・所要時間・実際の到着を表しません。共通経路は色の縞で表示し、凡例で人ごとに切り替えられます。
 
-オリジナルの集合応援団「ドッツン」が最長距離の参加者を「遠征の勇者」として表彰します。計算値が同じ人は全員受賞（浮動小数点誤差1e-9 km以内を同値扱い）。表示丸めで同距離に見える場合は補足を表示し、全員ゼロなら遠征の王冠は出しません。表彰は候補順位に影響せず、金銭や外部特典もありません。再計算時は「そーれっ★」の短いポーズから走行・祝福へ切り替わり、コピーを同時に重ねません。動きを減らすOS設定では静的表示になります。
+オリジナルの集合応援団「ドッツン」が最長距離の参加者を「遠征の勇者」として表彰します。画面と同じ小数一桁の距離で比較し、同じ最長表示値の人は全員受賞します。全員の表示距離がゼロなら遠征の王冠は出しません。計算・候補順位は従来どおり丸め前の値を使います。表彰は候補順位に影響せず、金銭や外部特典もありません。再計算時は「そーれっ★」の短いポーズから走行・祝福へ切り替わり、コピーを同時に重ねません。動きを減らすOS設定では静的表示になります。
 
 ## データとライセンス
 
 - 鉄道：国土交通省 [N02-24](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2024.html)、2024年12月31日時点、[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja)。[公開ミラー](https://github.com/antfu/mlit-json/tree/8e19627dc5db492ea4a3d9fd8501d5ccb862ef28)から取得。対象路線を抽出し、駅への投影・駅間分割を行っています。2025年版は使用していません。
 - 背景：国土交通省 [N03-19_190101](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v2_3.html)、2019年1月1日時点。[適用利用規約](https://nlftp.mlit.go.jp/ksj/other/agreement.html)（現行PDL1.0）に従います。[公開ミラー](https://github.com/piuccio/open-data-jp-prefectures-geojson/tree/513fb852832c99470e16b95a30ddd68bf3469dc0)での統合・簡略化後、関東周辺の都県を抽出し、輪郭を約160〜200m相当で簡略化しています。ミラーのMIT表記は `dist/vendor/prefectures-LICENSE.txt` に保持。
 - Leaflet：BSD 2-Clause。全文は `dist/vendor/leaflet-LICENSE.txt`。
-- ドッツンと王冠：オリジナルSVG、CC0。`dist/artwork-LICENSE.txt`。
+- ドッツンと王冠：独自の画像生成ヒーローPNGと王冠SVG、CC0（権利が存在する範囲）。`dist/artwork-LICENSE.txt`。
 - 独自アプリコード：MIT（`LICENSE`）。データ・ライブラリ・素材には上記の個別条件が適用されます。
 
 詳細な原典、従前と今回の加工、免責は `dist/sources.html`、取得ハッシュは `data-source/provenance.json` にあります。タイルサーバー、CDN、有料経路APIへの実行時通信はありません。
