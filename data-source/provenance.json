@@ -1,0 +1,30 @@
+{
+  "dataset": "MLIT N02-24 (2024-12-31)",
+  "license": "CC BY 4.0",
+  "retrieved": "2026-10-02",
+  "mirror_commit": "8e19627dc5db492ea4a3d9fd8501d5ccb862ef28",
+  "source_url": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2024.html",
+  "mirror_url": "https://github.com/antfu/mlit-json",
+  "files": {
+    "stations": {
+      "upstream_git_blob": "d1ae554ae4b907867981323a955042c4741a8e69",
+      "upstream_sha256": "9cfecdd6cdbb674abdb063c00e07d4afcdab31a70beb74464ca2de7d38e6852f",
+      "subset_sha256": "47ac497d66a2207691d6da172af1d0a4360c375d87bc551b75e1eff738ce75ea"
+    },
+    "sections": {
+      "upstream_git_blob": "d953afbd6382f2accc904ce0780e38ba4f9dca4b",
+      "upstream_sha256": "9f263c23235adb796d039fc3a99641056de78c55d6ec5b07b1f5d9be8305a7a6",
+      "subset_sha256": "d9dd48dc65da8fdf31b3ea17c62f2676f5b9c3c2da9c3e4597ccb067876563f4"
+    }
+  },
+  "basemap": {
+    "dataset": "N03-19_190101",
+    "source": "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v2_3.html",
+    "mirror": "https://github.com/piuccio/open-data-jp-prefectures-geojson",
+    "mirror_commit": "513fb852832c99470e16b95a30ddd68bf3469dc0",
+    "upstream_git_blob": "e93570a1f48dd252192d2625b44464144700d42a",
+    "upstream_sha256": "c12ec2656d13fe9c59237e742274fbc072e6b4a540de3cc41d432042aef7bace",
+    "subset_sha256": "45e897078e16604c62d7b68e5a1d3396ef998460985bba87fcd2cbc10e20134f",
+    "license": "原典: 国土数値情報の適用利用規約 (PDL1.0)。ミラー: MIT (Fabio Crisci, 2019)"
+  }
+}

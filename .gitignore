@@ -1,0 +1,8 @@
+node_modules/
+evidence/
+__pycache__/
+.env
+.env.*
+.openai/
+*.zip
+*.tar.gz

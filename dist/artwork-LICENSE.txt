@@ -1,0 +1,5 @@
+dots original artwork: mascot.svg (集合応援団 ドッツン) and crown.svg.
+Created specifically for this project; no third-party likeness, photos, audio, or artwork incorporated.
+Dedicated to the public domain under CC0 1.0 Universal:
+https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Provided without warranty. Railway/boundary datasets and Leaflet have their own separate licenses listed in sources.html.
