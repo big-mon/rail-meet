@@ -6,12 +6,13 @@ const $=id=>document.getElementById(id), colors=['#2169be','#bf4c1d','#8a45b5','
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ll=p=>[p[1],p[0]];
 let data,origins=['千葉','横浜'],candidates=[],selected=0,visible=[],map,overlay,routeBounds,motionLayer,motionFrame;
+const feedbackAnimations=new Set();
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 reducedMotion.addEventListener('change',stopMotion);
 function renderInputs(){
  $('origins').innerHTML=origins.map((value,i)=>`<div class="origin-field"><label for="origin-${i}"><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>参加者 ${letters[i]}</label><div class="select-row"><select id="origin-${i}" aria-label="参加者 ${letters[i]} の出発駅">${data.stations.map(s=>`<option${s.id===value?' selected':''}>${esc(s.id)}</option>`).join('')}</select>${origins.length>2?`<button type="button" class="remove" data-remove="${i}" aria-label="参加者 ${letters[i]} を削除">×</button>`:''}</div></div>`).join('');
- origins.forEach((_,i)=>$(`origin-${i}`).addEventListener('change',e=>{origins[i]=e.target.value;calculate();}));
- document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{origins.splice(Number(b.dataset.remove),1);renderInputs();calculate();$('add').focus();}));
+ origins.forEach((_,i)=>$(`origin-${i}`).addEventListener('change',e=>{origins[i]=e.target.value;calculate();joinPerson(i);}));
+ document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{origins.splice(Number(b.dataset.remove),1);renderInputs();calculate();$('add').focus({preventScroll:true});}));
  $('add').disabled=origins.length>=4;
 }
 function calculate(animate=false){
@@ -116,39 +117,64 @@ async function load(){
   $('retry').addEventListener('click',()=>window.L?load():location.reload());
  }
 }
-$('add').addEventListener('click',()=>{if(origins.length>=4)return;origins.push('東京');renderInputs();calculate();$(`origin-${origins.length-1}`).focus();});
+$('add').addEventListener('click',()=>{if(origins.length>=4)return;origins.push('東京');renderInputs();calculate();$(`origin-${origins.length-1}`).focus({preventScroll:true});joinPerson(origins.length-1);});
 $('find').addEventListener('click',()=>{
  calculate(true);
- if(!reducedMotion.matches){$('find').getAnimations().forEach(a=>a.cancel());$('find').animate([{transform:'scale(1)'},{transform:'scale(.98)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'});}
+ animateFeedback($('find'),[{transform:'scale(1)'},{transform:'scale(.98)'},{transform:'scale(1)'}],{duration:220});
 });
 load();
 
 function stopMotion(){
  cancelAnimationFrame(motionFrame);motionFrame=undefined;
+ feedbackAnimations.forEach(a=>a.cancel());feedbackAnimations.clear();delete $('celebration').dataset.stage;
  motionLayer?.clearLayers();$('meeting')?.classList.remove('arrived');
  $('celebration').classList.remove('cheering','celebrated');$('mascot-message').textContent='みんなが、くるぅ〜！';
 }
 function playMotion(){
  stopMotion();
  if(reducedMotion.matches){celebrate();return;}
- $('celebration').classList.add('cheering');$('mascot-message').textContent='そーれっ★';
+ $('celebration').classList.add('cheering');$('celebration').dataset.stage='send';$('mascot-message').textContent='そーれっ★';
  const c=candidates[selected],paths=c.routes.map(motionPath);
  const pieces=paths.map((path,i)=>visible[i]&&path.total>0?L.marker(ll(pointAt(path,0)),{interactive:false,keyboard:false,zIndexOffset:2000,icon:L.divIcon({className:'travel-marker',html:`<span class="travel-piece" style="--person:${colors[i]};--slot:${i-(origins.length-1)/2}">${letters[i]}</span>`,iconSize:[30,30],iconAnchor:[15,15]})}).addTo(motionLayer):null);
- if(!pieces.some(Boolean)){celebrate();return;}
- const start=performance.now();
+ const travelDuration=pieces.some(Boolean)?1250:0,start=performance.now();let merged=false,crowned=false;
  function frame(now){
-  const progress=Math.min(1,(now-start)/1250);
-  if(now-start>=420)$('mascot-message').textContent='みんなが、くるぅ〜！';
-  pieces.forEach((piece,i)=>{if(piece)piece.setLatLng(ll(pointAt(paths[i],progress)));});
-  if(progress<1)motionFrame=requestAnimationFrame(frame);
-  else{motionLayer.clearLayers();motionFrame=undefined;celebrate();}
+  const elapsed=now-start,progress=travelDuration?Math.min(1,elapsed/travelDuration):1;
+  if(!merged){
+   if(elapsed>=420){$('celebration').dataset.stage='run';$('mascot-message').textContent='みんなが、くるぅ〜！';}
+   pieces.forEach((piece,i)=>{if(piece)piece.setLatLng(ll(pointAt(paths[i],progress)));});
+  }
+  if(progress===1&&!merged){
+   merged=true;motionLayer.clearLayers();$('meeting').classList.add('arrived');$('celebration').dataset.stage='merge';
+   const point=ll(data.stations.find(s=>s.id===c.station).coords);
+   const badges=origins.map((_,i)=>`<span class="arrival-piece" style="--person:${colors[i]};--join-x:${(i-(origins.length-1)/2)*30}px">${letters[i]}</span>`).join('');
+   L.marker(point,{interactive:false,keyboard:false,zIndexOffset:2200,icon:L.divIcon({className:'arrival-marker',html:`<div class="arrival-burst" aria-hidden="true"><span class="arrival-ring"></span>${badges}</div>`,iconSize:[0,0],iconAnchor:[0,0]})}).addTo(motionLayer);
+   document.querySelectorAll('.arrival-piece').forEach(e=>animateFeedback(e,[{transform:'translate(calc(var(--join-x)*2),-40px) scale(.7)',opacity:0},{transform:'translate(var(--join-x),-35px) scale(1.2)',opacity:1,offset:.55},{transform:'translate(var(--join-x),-35px) scale(1)',opacity:1}],{duration:300}));
+   animateFeedback(document.querySelector('.arrival-ring'),[{transform:'translate(-50%,-50%) scale(.3)',opacity:0},{transform:'translate(-50%,-50%) scale(1)',opacity:.8,offset:.5},{transform:'translate(-50%,-50%) scale(1.25)',opacity:0}],{duration:500});
+   $('mascot-message').textContent='ここで、集合っ★';
+  }
+  if(merged&&!crowned&&elapsed>=travelDuration+250){
+   crowned=true;$('celebration').dataset.stage='award';celebrate();
+   document.querySelectorAll('.personal-crown').forEach(e=>animateFeedback(e,[{transform:'translateY(-30px) rotate(-15deg) scale(1.35)',opacity:0},{transform:'translateY(2px) rotate(4deg) scale(1)',opacity:1,offset:.65},{transform:'translateY(0) rotate(0)',opacity:1}],{duration:370}));
+  }
+  if(elapsed<travelDuration+650)motionFrame=requestAnimationFrame(frame);
+  else{motionLayer.clearLayers();motionFrame=undefined;$('celebration').dataset.stage='settled';}
  }
  motionFrame=requestAnimationFrame(frame);
+}
+function animateFeedback(element,keyframes,options){
+ if(reducedMotion.matches||!element)return;
+ const a=element.animate(keyframes,{easing:'cubic-bezier(.2,.8,.3,1)',...options});feedbackAnimations.add(a);
+ a.onfinish=a.oncancel=()=>feedbackAnimations.delete(a);
+}
+function joinPerson(i){
+ const frames=[{transform:'scale(.65) rotate(-10deg)'},{transform:'scale(1.25) rotate(5deg)',offset:.6},{transform:'scale(1)'}];
+ animateFeedback(document.querySelector(`#origin-${i}`).closest('.origin-field').querySelector('.person-dot'),frames,{duration:320});
+ animateFeedback(document.querySelector(`[data-origin-person="${letters[i]}"]`),frames,{duration:320});
 }
 
 function renderReward(reward){
  const {max,winners}=reward;
- $('reward').innerHTML=winners.length?`<div class="reward-heading"><img class="reward-crown" src="crown.svg" alt="王冠" width="32" height="28"><strong>遠征の勇者</strong><span class="reward-people">${winners.map(i=>`<span class="person-dot" data-winner="${letters[i]}" style="--person:${colors[i]}">${letters[i]}</span>`).join('')}</span></div><p class="reward-message">${[...new Set(winners.map(i=>origins[i]))].map(esc).join('・')}からの遠征プランに、拍手！</p><p class="reward-rule">最長 ${km(max)} km${winners.length>1?' · みんなが勇者！':''}</p>`:'<strong class="nearby-party">ご近所パーティー！</strong><p class="reward-message">みんな同じ駅。遠征なしで集まれるね！</p>';
+ $('reward').innerHTML=winners.length?`<div class="reward-heading"><img class="reward-crown" src="crown.svg" alt="王冠" width="32" height="28"><strong>遠征の勇者</strong><span class="reward-people">${winners.map(i=>`<span class="winner-token"><img class="personal-crown" src="crown.svg" alt="" width="23" height="19"><span class="person-dot" data-winner="${letters[i]}" style="--person:${colors[i]}">${letters[i]}</span></span>`).join('')}</span></div><p class="reward-message">${[...new Set(winners.map(i=>origins[i]))].map(esc).join('・')}からの遠征プランに、拍手！</p><p class="reward-rule">最長 ${km(max)} km${winners.length>1?' · みんなが勇者！':''}</p>`:'<strong class="nearby-party">ご近所パーティー！</strong><p class="reward-message">みんな同じ駅。遠征なしで集まれるね！</p>';
 }
 function celebrate(){
  $('meeting').classList.add('arrived');$('celebration').classList.remove('cheering');$('celebration').classList.add('celebrated');
