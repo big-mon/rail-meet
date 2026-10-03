@@ -84,6 +84,8 @@ ordered=popular+[s for s in locations if s not in popular]
 result['stations']=[{'id':s,'coords':locations[s]} for s in ordered if s in locations]
 from expand_network import expand
 expand(ROOT,result,sections,stations,distance,project,route)
+from build_picker import build_picker
+build_picker(ROOT,result)
 (ROOT/'public/network.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':')))
 (ROOT/'evidence').mkdir(exist_ok=True)
 (ROOT/'evidence/data-audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2))

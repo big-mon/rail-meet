@@ -81,7 +81,18 @@
         "武蔵小杉",
         "羽沢横浜国大"
       ],
-      "reference": "https://www.jreast.co.jp/map/pdf/map_tokyo.pdf"
+      "reference": "https://www.jreast.co.jp/map/pdf/map_tokyo.pdf",
+      "selection": {
+        "stations": [
+          "新宿",
+          "渋谷",
+          "恵比寿",
+          "大崎",
+          "西大井",
+          "武蔵小杉",
+          "羽沢横浜国大"
+        ]
+      }
     },
     {
       "operator": "東日本旅客鉄道",
@@ -151,7 +162,15 @@
         "三河島",
         "南千住"
       ],
-      "reference": "https://www.jreast.co.jp/map/pdf/map_tokyo.pdf"
+      "reference": "https://www.jreast.co.jp/map/pdf/map_tokyo.pdf",
+      "selection": {
+        "stations": [
+          "上野",
+          "日暮里",
+          "三河島",
+          "南千住"
+        ]
+      }
     },
     {
       "operator": "東日本旅客鉄道",
@@ -558,7 +577,10 @@
         "新宿西口",
         "都庁前"
       ],
-      "reference": "https://www.kotsu.metro.tokyo.jp/subway/stations/"
+      "reference": "https://www.kotsu.metro.tokyo.jp/subway/stations/",
+      "selection": {
+        "splitAt": "都庁前"
+      }
     },
     {
       "operator": "東京都",
@@ -613,7 +635,24 @@
         "奥沢",
         "田園調布"
       ],
-      "reference": "https://www.tokyu.co.jp/railway/"
+      "reference": "https://www.tokyu.co.jp/railway/",
+      "selection": {
+        "stations": [
+          "目黒",
+          "不動前",
+          "武蔵小山",
+          "西小山",
+          "洗足",
+          "大岡山",
+          "奥沢",
+          "田園調布",
+          "多摩川",
+          "新丸子",
+          "武蔵小杉",
+          "元住吉",
+          "日吉"
+        ]
+      }
     },
     {
       "operator": "東急電鉄",
@@ -658,7 +697,29 @@
         "上野毛",
         "二子玉川"
       ],
-      "reference": "https://www.tokyu.co.jp/railway/"
+      "reference": "https://www.tokyu.co.jp/railway/",
+      "selection": {
+        "stations": [
+          "大井町",
+          "下神明",
+          "戸越公園",
+          "中延",
+          "荏原町",
+          "旗の台",
+          "北千束",
+          "大岡山",
+          "緑が丘",
+          "自由が丘",
+          "九品仏",
+          "尾山台",
+          "等々力",
+          "上野毛",
+          "二子玉川",
+          "二子新地",
+          "高津",
+          "溝の口"
+        ]
+      }
     },
     {
       "operator": "東急電鉄",
@@ -822,7 +883,10 @@
         "幡ヶ谷",
         "笹塚"
       ],
-      "reference": "https://www.keio.co.jp/train/station/"
+      "reference": "https://www.keio.co.jp/train/station/",
+      "selection": {
+        "label": "京王新線"
+      }
     },
     {
       "operator": "京王電鉄",
@@ -885,7 +949,10 @@
         "日暮里",
         "新三河島"
       ],
-      "reference": "https://www.keisei.co.jp/keisei/tetudou/railmap/railmap.php"
+      "reference": "https://www.keisei.co.jp/keisei/tetudou/railmap/railmap.php",
+      "selection": {
+        "label": "京成本線（京成上野〜新三河島）"
+      }
     },
     {
       "operator": "京成電鉄",
@@ -912,7 +979,10 @@
         "八千代台",
         "京成大和田"
       ],
-      "reference": "https://www.keisei.co.jp/keisei/tetudou/railmap/railmap.php"
+      "reference": "https://www.keisei.co.jp/keisei/tetudou/railmap/railmap.php",
+      "selection": {
+        "label": "京成本線（江戸川〜京成大和田）"
+      }
     },
     {
       "operator": "京成電鉄",
@@ -958,7 +1028,10 @@
         "高根公団",
         "滝不動"
       ],
-      "reference": "https://www.keisei.co.jp/keisei/tetudou/railmap/railmap.php"
+      "reference": "https://www.keisei.co.jp/keisei/tetudou/railmap/railmap.php",
+      "selection": {
+        "operator": "京成電鉄"
+      }
     },
     {
       "operator": "西武鉄道",
@@ -1217,7 +1290,10 @@
         "巣鴨新田",
         "庚申塚"
       ],
-      "reference": "https://www.kotsu.metro.tokyo.jp/toden/stations/"
+      "reference": "https://www.kotsu.metro.tokyo.jp/toden/stations/",
+      "selection": {
+        "label": "東京さくらトラム（早稲田〜庚申塚）"
+      }
     },
     {
       "operator": "東京都",
@@ -1229,7 +1305,10 @@
         "荒川区役所前",
         "荒川二丁目"
       ],
-      "reference": "https://www.kotsu.metro.tokyo.jp/toden/stations/"
+      "reference": "https://www.kotsu.metro.tokyo.jp/toden/stations/",
+      "selection": {
+        "label": "東京さくらトラム（三ノ輪橋〜荒川二丁目）"
+      }
     },
     {
       "operator": "千葉都市モノレール",

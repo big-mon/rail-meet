@@ -1,0 +1,46 @@
+const {chromium}=require('playwright'),assert=require('node:assert/strict');
+const {selectStation}=require('./browser-helpers.cjs');
+(async()=>{
+ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox']});
+ const url=process.env.TEST_URL||'http://127.0.0.1:4173';
+ for(const width of [320,390,1360]){
+  const page=await browser.newPage({viewport:{width,height:900},reducedMotion:'reduce'}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(url);await page.waitForFunction(()=>!document.querySelector('#find').disabled);
+  assert.equal(await page.locator('#origin-0').inputValue(),'千葉');assert.equal(await page.locator('#origin-1').inputValue(),'横浜');
+  assert.equal(await page.locator('#operator-0 option:checked').textContent(),'JR東日本');
+  assert.equal(await page.locator('#line-0 option:checked').textContent(),'中央・総武各駅停車');
+  assert.equal(await page.locator('#line-1 option:checked').textContent(),'京浜東北線');
+  await page.locator('#operator-0').focus();await page.keyboard.press('Tab');assert(await page.locator('#line-0').evaluate(e=>e===document.activeElement));
+  await page.keyboard.press('Tab');assert(await page.locator('#origin-0').evaluate(e=>e===document.activeElement));
+  await page.keyboard.press('Home');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');assert.equal(await page.locator('#origin-0').inputValue(),'三鷹');
+  await selectStation(page,0,'千葉');
+  await page.locator('#find').click();await page.locator('.portal-skip').click();assert.equal(await page.locator('#meeting-name').textContent(),'新木場');
+  await page.locator('#operator-0').selectOption('京王電鉄');
+  assert.equal(await page.locator('#origin-0').inputValue(),'');assert.equal(await page.locator('#line-0').inputValue(),'');
+  assert(await page.locator('#find').isDisabled());assert(await page.locator('#results').isHidden());
+  await page.locator('#line-0').selectOption({label:'京王新線'});
+  assert.deepEqual(await page.locator('#origin-0 option').allTextContents(),['出発駅を選択','新宿','初台','幡ヶ谷','笹塚']);
+  await page.locator('#origin-0').selectOption('初台');assert(await page.locator('#results').isVisible());
+  await page.locator('#line-0').selectOption({label:'京王線'});assert.equal(await page.locator('#origin-0').inputValue(),'');assert(await page.locator('#results').isHidden());
+  await page.locator('#origin-0').selectOption('新宿');await page.locator('#line-0').selectOption({label:'京王新線'});assert.equal(await page.locator('#origin-0').inputValue(),'新宿');
+  await page.locator('#operator-0').selectOption('東日本旅客鉄道');assert.equal(await page.locator('#origin-0').inputValue(),'新宿');
+  await page.locator('#add').click();await selectStation(page,2,'大塚');
+  await page.locator('#operator-2').selectOption('東京都');assert.equal(await page.locator('#origin-2 option:checked').textContent(),'大塚駅前');assert.equal(await page.locator('#origin-2').inputValue(),'大塚');
+  await page.locator('#add').click();await selectStation(page,3,'千葉');assert(await page.locator('#add').isDisabled());
+  const kept=await page.locator('#line-2').inputValue();await page.locator('[data-remove="1"]').click();assert.equal(await page.locator('#line-1').inputValue(),kept);assert.equal(await page.locator('#origin-1').inputValue(),'大塚');
+  await page.locator('[data-remove="2"]').click();
+  await page.goto(url+'/#v=1&from=千葉&from=横浜&to=東陽町');await page.waitForSelector('.person-route');
+  assert.equal(await page.locator('#origin-0').inputValue(),'千葉');assert.equal(await page.locator('#origin-1').inputValue(),'横浜');assert.equal(await page.locator('#meeting-name').textContent(),'東陽町');
+  await page.reload();await page.waitForSelector('.person-route');assert.equal(await page.locator('#line-1 option:checked').textContent(),'京浜東北線');
+  await selectStation(page,1,'千葉');assert.equal(new URL(page.url()).hash,'');assert.equal(await page.locator('#meeting-name').textContent(),'千葉');assert.match(await page.locator('#status').textContent(),/別々/);
+  await selectStation(page,1,'横浜');
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  for(const select of await page.locator('#origins select').all()){const box=await select.boundingBox();assert(box.height>=44&&box.x>=0&&box.x+box.width<=width);}
+  await page.screenshot({path:`evidence/picker-${width}.png`,fullPage:true});
+  await page.locator('.inputs').screenshot({path:`evidence/picker-inputs-${width}.png`});
+  assert.deepEqual(errors,[]);await page.close();
+ }
+ const failure=await browser.newPage();await failure.route('**/network.json',r=>r.fulfill({status:503,body:'unavailable'}));await failure.goto(url);await failure.waitForSelector('#retry');assert(await failure.locator('#operator-0').isDisabled());assert(await failure.locator('#find').isDisabled());await failure.unroute('**/network.json');await failure.locator('#retry').click();await failure.waitForFunction(()=>!document.querySelector('#find').disabled);assert.equal(await failure.locator('#origin-0').inputValue(),'千葉');
+ await browser.close();console.log('PASS picker: defaults, dependent clearing/preservation, real stop order, aliases, add/remove, sharing, duplicates, keyboard, 320/390/1360, failure/retry');
+})().catch(e=>{console.error(e);process.exit(1)});

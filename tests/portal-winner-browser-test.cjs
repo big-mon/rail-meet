@@ -1,3 +1,4 @@
+const {selectStation}=require('./browser-helpers.cjs');
 const {chromium}=require('playwright'),assert=require('node:assert/strict');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,headless:true,args:['--no-sandbox']});
@@ -20,7 +21,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
   await page.keyboard.press('Escape');assert.equal(await page.locator('.mouth-portal').count(),0);
   await page.locator('[data-candidate="1"]').evaluate(e=>e.click());assert.equal(await page.locator('#meeting-name').textContent(),'葛西臨海公園');
   await page.locator('#map').scrollIntoViewIfNeeded();await page.waitForSelector('.travel-piece');
-  await page.locator('#origin-0').selectOption('新宿');
+  await selectStation(page,0,'新宿');
   const latest=await page.locator('.candidate h3').first().textContent();assert.notEqual(latest,'新木場');
   await page.locator('#find').evaluate(e=>{for(let i=0;i<8;i++)e.click()});assert.equal(await onlyWinner(),latest);
   await page.locator('[data-candidate="2"]').evaluate(e=>e.click());assert.equal(await page.locator('.mouth-portal').count(),0);

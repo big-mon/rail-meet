@@ -73,3 +73,23 @@ for(const [pair,expected] of [[['横浜','三ツ沢下町'],1.4541047081622702],
 assert.deepEqual(candidates.map(c=>c.station),['新木場','葛西臨海公園','東陽町']);
 assert.equal(coverage.geometryBoundaryAudit.length,2);assert.deepEqual(data.source.excludedConnections,[]);
 console.log('PASS restored direct services, local meeting candidates, and only two bounded geometry exceptions');
+
+const routes=data.selectionRoutes;
+const line=name=>routes.find(r=>r.label===name);
+const stops=name=>line(name).stations.map(s=>s.name);
+assert.equal(new Set(routes.flatMap(r=>r.stations.map(s=>s.id))).size,563);
+assert.equal(new Set(routes.map(r=>r.id)).size,routes.length);
+for(const r of routes){assert(r.reference.startsWith('https://'));assert.equal(new Set(r.stations.map(s=>s.id)).size,r.stations.length);}
+assert.deepEqual(stops('京王新線'),['新宿','初台','幡ヶ谷','笹塚']);
+assert(!stops('京王線').includes('初台'));
+assert.deepEqual(stops('中央・総武各駅停車').slice(17,23),['御茶ノ水','秋葉原','浅草橋','両国','錦糸町','亀戸']);
+assert.deepEqual(stops('総武線快速').slice(0,4),['東京','新日本橋','馬喰町','錦糸町']);
+assert.deepEqual(stops('東急目黒線').slice(-6),['田園調布','多摩川','新丸子','武蔵小杉','元住吉','日吉']);
+assert.equal(line('京成松戸線').operator,'京成電鉄');
+assert(!routes.some(r=>r.operator==='新京成電鉄'));
+assert.equal(stops('山手線（外回り順）').length,30);assert(line('山手線（外回り順）').loop);
+assert.deepEqual(stops('都営大江戸線（練馬〜都庁前）').slice(-2),['西新宿五丁目','都庁前']);
+assert.equal(stops('都営大江戸線（環状部）')[0],'都庁前');assert.equal(stops('都営大江戸線（環状部）').at(-1),'新宿西口');
+assert(routes.some(r=>r.stations.some(s=>s.name==='大塚駅前'&&s.id==='大塚')));
+assert(routes.some(r=>r.stations.some(s=>s.name==='浅草'&&s.id==='浅草（つくばエクスプレス）')));
+console.log('PASS complete picker coverage, service order, branches, loops, operator boundaries and station aliases');
