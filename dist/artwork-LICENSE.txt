@@ -5,3 +5,5 @@ To the extent any copyright or related rights exist and can be waived, these ass
 https://creativecommons.org/publicdomain/zero/1.0/legalcode
 No representation is made that generated imagery is eligible for copyright. Provided without warranty.
 Railway/boundary datasets and Leaflet retain their separate licenses in sources.html.
+
+portal-face.mjs: original comic face SVG, CC0 (to the extent rights exist).

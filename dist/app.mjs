@@ -1,3 +1,4 @@
+import {showPortal,cancelPortal} from './portal.mjs';
 import {formatKm as km} from './distance.mjs';
 import {expeditionReward} from './rewards.mjs';
 import {motionPath,pointAt} from './motion.mjs';
@@ -49,7 +50,7 @@ function renderSelection(fit){
   return `<article class="route-card" style="--person:${colors[i]}"><div class="route-row"><span class="person-dot">${letters[i]}</span><span>${esc(origins[i])}</span><strong>${km(r.km)} <small>km</small></strong></div>${reward.winners.includes(i)?'<p class="route-award"><img src="crown.svg" alt="" width="20" height="18">遠征の勇者</p>':''}<div class="bar"><span style="width:${c.max?r.km/c.max*100:0}%"></span></div>${r.steps.length?`<details><summary>${lines.map(esc).join(' → ')}<br>経由する駅を見る</summary><p class="stops">${r.stations.map(esc).join(' → ')}</p></details>`:'<p class="zero">集合駅と同じです。移動はありません。</p>'}</article>`;
  }).join('');
  $('legend').innerHTML=origins.map((o,i)=>`<button type="button" data-person="${i}" aria-pressed="${visible[i]}" aria-label="参加者 ${letters[i]} ${esc(o)} の経路表示"><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>${esc(o)}<b>${km(c.routes[i].km)} km</b></button>`).join('');
- document.querySelectorAll('[data-person]').forEach(b=>b.addEventListener('click',()=>{const i=Number(b.dataset.person);visible[i]=!visible[i];b.setAttribute('aria-pressed',visible[i]);drawRoutes(false);}));
+ document.querySelectorAll('[data-person]').forEach(b=>b.addEventListener('click',()=>{stopMotion();const i=Number(b.dataset.person);visible[i]=!visible[i];b.setAttribute('aria-pressed',visible[i]);drawRoutes(false);}));
  if(!map)initMap();map.invalidateSize({pan:false});drawRoutes(fit);
 }
 function initMap(){
@@ -133,6 +134,7 @@ $('find').addEventListener('click',()=>{
 load();
 
 function stopMotion(){
+ cancelPortal();
  cancelAnimationFrame(motionFrame);motionFrame=undefined;
  feedbackAnimations.forEach(a=>a.cancel());feedbackAnimations.clear();delete $('celebration').dataset.stage;
  motionLayer?.clearLayers();$('meeting')?.classList.remove('arrived');
@@ -140,6 +142,9 @@ function stopMotion(){
 }
 function playMotion(){
  stopMotion();
+ showPortal(candidates,selected,runRailMotion,reducedMotion.matches);
+}
+function runRailMotion(){
  if(reducedMotion.matches){celebrate();return;}
  $('celebration').classList.add('cheering');$('celebration').dataset.stage='send';$('mascot-message').textContent='そーれっ★';
  const c=candidates[selected],paths=c.routes.map(motionPath);

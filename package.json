@@ -4,8 +4,9 @@
   "scripts": {
     "test": "node scripts/test.mjs && node scripts/motion-test.mjs && node scripts/reward-test.mjs",
     "test:browser": "node scripts/browser-test.cjs && node scripts/motion-browser-test.cjs && node scripts/reward-browser-test.cjs && node scripts/display-reward-browser-test.cjs && node scripts/sequence-browser-test.cjs",
-    "test:showtime": "node scripts/showtime-browser-test.cjs",
-    "test:first-search": "node scripts/first-search-browser-test.cjs"
+    "test:showtime": "node scripts/portal-browser-test.cjs",
+    "test:first-search": "node scripts/first-search-browser-test.cjs",
+    "test:portal": "node scripts/portal-browser-test.cjs"
   },
   "devDependencies": {
     "playwright": "1.57.0"
