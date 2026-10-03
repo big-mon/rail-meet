@@ -7,3 +7,5 @@
 
 .showtime .search-action .find-button{height:auto;min-height:64px;font-size:18px;margin:0}@media(max-width:350px){.showtime .search-action .find-button{font-size:16px}}
 @media(min-width:761px){.showtime .inputs{grid-template-columns:minmax(0,1fr) 360px}}
+
+.showtime .alternatives{margin-top:18px}.showtime .alternatives .results-heading{display:flex}.showtime .alternatives #candidates{margin-bottom:0}

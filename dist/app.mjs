@@ -138,7 +138,7 @@ function stopMotion(){
  cancelAnimationFrame(motionFrame);motionFrame=undefined;
  feedbackAnimations.forEach(a=>a.cancel());feedbackAnimations.clear();delete $('celebration').dataset.stage;
  motionLayer?.clearLayers();$('meeting')?.classList.remove('arrived');
- $('celebration').classList.remove('cheering','celebrated');$('mascot-message').textContent='みんなが、くるぅ〜！';
+ $('celebration').classList.remove('cheering','celebrated');
 }
 function playMotion(){
  stopMotion();
@@ -146,14 +146,14 @@ function playMotion(){
 }
 function runRailMotion(){
  if(reducedMotion.matches){celebrate();return;}
- $('celebration').classList.add('cheering');$('celebration').dataset.stage='send';$('mascot-message').textContent='そーれっ★';
+ $('celebration').classList.add('cheering');$('celebration').dataset.stage='send';
  const c=candidates[selected],paths=c.routes.map(motionPath);
  const pieces=paths.map((path,i)=>visible[i]&&path.total>0?L.marker(ll(pointAt(path,0)),{interactive:false,keyboard:false,zIndexOffset:2000,icon:L.divIcon({className:'travel-marker',html:`<span class="travel-piece" style="--person:${colors[i]};--slot:${i-(origins.length-1)/2}">${letters[i]}</span>`,iconSize:[30,30],iconAnchor:[15,15]})}).addTo(motionLayer):null);
  const travelDuration=pieces.some(Boolean)?1250:0,start=performance.now();let merged=false,crowned=false;
  function frame(now){
   const elapsed=now-start,progress=travelDuration?Math.min(1,elapsed/travelDuration):1;
   if(!merged){
-   if(elapsed>=420){$('celebration').dataset.stage='run';$('mascot-message').textContent='みんなが、くるぅ〜！';}
+   if(elapsed>=420){$('celebration').dataset.stage='run';}
    pieces.forEach((piece,i)=>{if(piece)piece.setLatLng(ll(pointAt(paths[i],progress)));});
   }
   if(progress===1&&!merged){
@@ -163,7 +163,7 @@ function runRailMotion(){
    L.marker(point,{interactive:false,keyboard:false,zIndexOffset:2200,icon:L.divIcon({className:'arrival-marker',html:`<div class="arrival-burst" aria-hidden="true"><span class="arrival-ring"></span>${badges}</div>`,iconSize:[0,0],iconAnchor:[0,0]})}).addTo(motionLayer);
    document.querySelectorAll('.arrival-piece').forEach(e=>animateFeedback(e,[{transform:'translate(calc(var(--join-x)*2),-40px) scale(.7)',opacity:0},{transform:'translate(var(--join-x),-35px) scale(1.2)',opacity:1,offset:.55},{transform:'translate(var(--join-x),-35px) scale(1)',opacity:1}],{duration:300}));
    animateFeedback(document.querySelector('.arrival-ring'),[{transform:'translate(-50%,-50%) scale(.3)',opacity:0},{transform:'translate(-50%,-50%) scale(1)',opacity:.8,offset:.5},{transform:'translate(-50%,-50%) scale(1.25)',opacity:0}],{duration:500});
-   $('mascot-message').textContent='ここで、集合っ★';
+
   }
   if(merged&&!crowned&&elapsed>=travelDuration+250){
    crowned=true;$('celebration').dataset.stage='award';celebrate();
@@ -191,5 +191,5 @@ function renderReward(reward){
 }
 function celebrate(){
  $('meeting').classList.add('arrived');$('celebration').classList.remove('cheering');$('celebration').classList.add('celebrated');
- $('mascot-message').textContent=reducedMotion.matches?'そーれっ★':'集合プラン、できたぁ〜！';
+
 }
