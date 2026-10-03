@@ -39,5 +39,5 @@
     140.11346881317596,
     35.74053
   ],
-  "processing": "Original source records retained with geographic padding; explicit corridor adjacency, station projection <=150m, exact published-boundary clipping, connected component only. Geometry vertices are not simplified."
+  "processing": "Original source records retained with padding; explicit adjacency, station projection <=150m, fixed station extent with two named source-geometry boundary exceptions capped at 5m/60m; connected component only. Geometry vertices are not simplified."
 }

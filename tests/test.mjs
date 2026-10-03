@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {validate,haversine,shortest,restore,recommend} from '../public/engine.mjs';
 const data=validate(JSON.parse(fs.readFileSync(new URL('../public/network.json',import.meta.url))));
-assert.equal(data.stations.length,563);assert.equal(data.edges.length,702);
+assert.equal(data.stations.length,563);assert.equal(data.edges.length,704);
 assert(Math.abs(haversine([0,0],[1,0])-111.19508)<.001);
 const candidates=recommend(data,['千葉','横浜']);
 assert.equal(candidates.length,3);assert(candidates[0].max<=candidates[1].max);
@@ -31,7 +31,7 @@ const names=data.stations.map(s=>s.id), n=names.length, idx=new Map(names.map((s
 const all=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?0:Infinity));
 for(const e of data.edges){const i=idx.get(e.a),j=idx.get(e.b);all[i][j]=all[j][i]=Math.min(all[i][j],e.km);}
 for(let k=0;k<n;k++)for(let i=0;i<n;i++)for(let j=0;j<n;j++)all[i][j]=Math.min(all[i][j],all[i][k]+all[k][j]);
-for(let i=0;i<n;i++){const tree=shortest(data,names[i]);for(let j=0;j<n;j++){assert(Number.isFinite(all[i][j]));assert(Math.abs(tree.distances.get(names[j])-all[i][j])<1e-8);}}
+for(let i=0;i<n;i++){const tree=shortest(data,names[i]);for(let j=0;j<n;j++){assert(Number.isFinite(all[i][j]));assert(Math.abs(tree.distances.get(names[j])-all[i][j])<1e-8);const route=restore(data,tree,names[j]);assert.equal(route.stations[0],names[i]);assert.equal(route.stations.at(-1),names[j]);assert(Math.abs(route.steps.reduce((sum,s)=>sum+data.edges[s.edge].km,0)-all[i][j])<1e-8);}}
 const central=restore(baseline,shortest(baseline,'三鷹'),'千葉');
 for(const name of ['吉祥寺','中野','新宿','代々木','四ツ谷','御茶ノ水','秋葉原','浅草橋','両国','錦糸町','西船橋','津田沼','幕張','稲毛'])assert(central.stations.includes(name));
 assert(central.km>59&&central.km<62);assert(!central.stations.includes('東京'));
@@ -44,14 +44,16 @@ const scenarioResults=scenarios.map(origins=>{
 });
 const base=JSON.parse(fs.readFileSync(new URL('../public/basemap.json',import.meta.url)));assert.equal(base.features.length,9);assert(fs.statSync(new URL('../public/basemap.json',import.meta.url)).size<110000);assert(base.features.every(f=>Object.keys(f.properties).join()==='name'));
 console.log(JSON.stringify({result:'PASS',allPairsChecked:n*n,scenarioResults,checks:['distance','ranking','path restoration','explicit Tokyo transfer','crossing is not a transfer','same station','duplicate origin','unreachable','invalid input','corrupt data','reverse paths','316969 all-pairs oracle comparisons','six origin scenarios','continuous Chuo-Sobu local path','563-station connected network','small basemap without roads or POIs'],defaultCandidates:candidates.map(c=>({station:c.station,max:c.max,distances:c.routes.map(r=>r.km)})),chibaYokohamaKm:chibaYokohama.km},null,2));
-// Expansion contract: every added rail edge is an explicitly named adjacency, entirely inside the legacy extent.
+// Expansion contract: every added rail edge is an explicitly named adjacency, inside the station extent except two bounded source-geometry exceptions.
 const spec=JSON.parse(fs.readFileSync(new URL('../data-source/corridors.json',import.meta.url)));
 const identity=(c,s)=>spec.identityExceptions[`${c.operator}/${c.line}/${s}`]||s;
 const pairs=new Set(spec.corridors.flatMap(c=>c.stations.slice(1).map((b,i)=>JSON.stringify([c.operator,c.line,c.label,identity(c,c.stations[i]),identity(c,b)]))));
 const [west,south,east,north]=spec.bounds;
 for(const e of data.edges.slice(80)){
  assert(pairs.has(JSON.stringify([e.sourceOperator,e.sourceLine,e.line,e.a,e.b])));
- assert(e.coords.every(([x,y])=>x>=west-1e-9&&x<=east+1e-9&&y>=south-1e-9&&y<=north+1e-9));
+ const exception=spec.geometryBoundaryExceptions.find(x=>x.operator===e.sourceOperator&&x.line===e.sourceLine&&x.pair[0]===e.a&&x.pair[1]===e.b);
+ const deviation=Math.max(...e.coords.map(([x,y])=>haversine([x,y],[Math.min(east,Math.max(west,x)),Math.min(north,Math.max(south,y))])*1000));
+ assert(deviation<=(exception?.maxOutsideMetres||0)+.000001);
 }
 for(const id of ['幕張豊砂','新綱島','新横浜','葛西臨海公園','浅草（つくばエクスプレス）','浅草','早稲田（都電）','早稲田'])assert(data.stations.some(s=>s.id===id));
 assert(!data.edges.some(e=>e.a.startsWith('浅草')&&e.b.startsWith('浅草')&&e.a!==e.b));
@@ -63,3 +65,11 @@ const coverage=JSON.parse(fs.readFileSync(new URL('../public/coverage.json',impo
 assert.equal(coverage.stations,data.stations.length);assert.equal(coverage.edges,data.edges.length);
 assert(coverage.projections.every(p=>p.metres<=150));
 console.log('PASS original extent, explicit adjacency, new stations, homonyms, aliases and excluded fragments');
+
+assert.deepEqual(spec.geometryBoundaryExceptions.map(e=>[e.pair,e.maxOutsideMetres]),[[['横浜','三ツ沢下町'],5],[['市役所前','千葉'],60]]);
+for(const [pair,expected] of [[['横浜','三ツ沢下町'],1.4541047081622702],[['市役所前','千葉'],.8725409937237553]]){
+ const direct=restore(data,shortest(data,pair[0]),pair[1]);assert.equal(direct.steps.length,1);assert(Math.abs(direct.km-expected)<1e-9);assert(pair.includes(recommend(data,pair)[0].station));
+}
+assert.deepEqual(candidates.map(c=>c.station),['新木場','葛西臨海公園','東陽町']);
+assert.equal(coverage.geometryBoundaryAudit.length,2);assert.deepEqual(data.source.excludedConnections,[]);
+console.log('PASS restored direct services, local meeting candidates, and only two bounded geometry exceptions');

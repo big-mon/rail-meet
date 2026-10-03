@@ -8,13 +8,13 @@ const assert=require('node:assert/strict');const fs=require('node:fs');
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));
  // All rendering data is local; no external map requests are permitted.
  await page.goto((process.env.TEST_URL||'http://127.0.0.1:4173'));await openResults(page);await page.waitForSelector('.candidate');
- assert.equal(await page.locator('.candidate').count(),3);assert.match(await page.locator('#meeting-name').textContent(),/葛西臨海公園/);
+ assert.equal(await page.locator('.candidate').count(),3);assert.match(await page.locator('#meeting-name').textContent(),/新木場/);
  await page.waitForFunction(()=>document.querySelector('#background-status').textContent.includes('概略図'));
  assert(await page.locator('.person-route').count()>10);results.push('Initial 千葉 / 横浜; three candidates; vector prefecture/coast background');
  await page.screenshot({path:'evidence/desktop-default.png',fullPage:true});
  const before=await page.locator('.person-route').evaluateAll(els=>els.map(e=>e.getAttribute('d')).join('|'));
  const beforeDetail=await page.locator('#route-details').textContent();
- await page.locator('[data-candidate="1"]').click();assert.match(await page.locator('#meeting-name').textContent(),/東陽町/);
+ await page.locator('[data-candidate="1"]').click();assert.match(await page.locator('#meeting-name').textContent(),/葛西臨海公園/);
  assert.notEqual(await page.locator('#route-details').textContent(),beforeDetail);
  assert.notEqual(await page.locator('.person-route').evaluateAll(els=>els.map(e=>e.getAttribute('d')).join('|')),before);
  results.push('Candidate switch updates station, distance and rail path');
@@ -73,6 +73,6 @@ const assert=require('node:assert/strict');const fs=require('node:fs');
  // Unreachable UI with a valid but isolated fixture (never shipped).
  const data=JSON.parse(fs.readFileSync('public/network.json'));
  data.stations.push({id:'孤立駅',coords:[140,35]});await failure.route('**/network.json',r=>r.fulfill({json:data}));await failure.reload();await openResults(failure);await failure.waitForSelector('.candidate');await failure.locator('#origin-0').selectOption('孤立駅');assert(await failure.locator('#results').isHidden());assert.match(await failure.locator('#status').textContent(),/到達/);results.push('Unreachable UI gives actionable error');
- for(const pair of [['横浜','三ツ沢下町'],['市役所前','千葉']]){for(let i=0;i<2;i++)await page.locator('#origin-'+i).selectOption(pair[i]);assert(await page.locator('#coverage-note').isVisible());assert((await page.locator('#coverage-note').textContent()).includes(pair.join('〜')));}await page.screenshot({path:'evidence/boundary-detour-mobile.png',fullPage:true});await page.locator('#origin-0').selectOption('千葉');await page.locator('#origin-1').selectOption('横浜');assert(await page.locator('#coverage-note').isHidden());results.push('Explicit boundary omissions warn about detours and clear after changing origins');
+ for(const pair of [['横浜','三ツ沢下町'],['市役所前','千葉']]){for(let i=0;i<2;i++)await page.locator('#origin-'+i).selectOption(pair[i]);assert(await page.locator('#coverage-note').isHidden());assert(pair.includes(await page.locator('#meeting-name').textContent()));}await page.screenshot({path:'evidence/restored-direct-mobile.png',fullPage:true});results.push('Restored boundary connections select nearby endpoints without detours');
  assert.deepEqual(errors,[]);assert(requests.every(u=>u.startsWith((process.env.TEST_URL||'http://127.0.0.1:4173')+'/')));results.push('Zero external requests, zero raster tile images, zero JavaScript errors');assert.equal(await page.locator('.leaflet-tile').count(),0);fs.writeFileSync('evidence/browser-tests.json',JSON.stringify({result:'PASS',checks:results,pageErrors:errors,browser:await browser.version(),externalRequests:requests.filter(u=>!u.startsWith((process.env.TEST_URL||'http://127.0.0.1:4173')+'/'))},null,2));console.log(results.join('\n'));await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

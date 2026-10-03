@@ -1301,28 +1301,10 @@
       "reason": "outside_bounds_or_projection"
     },
     {
-      "operator": "横浜市",
-      "line": "3号線",
-      "pair": [
-        "横浜",
-        "三ツ沢下町"
-      ],
-      "reason": "no_verified_in_bounds_geometry"
-    },
-    {
       "operator": "東武鉄道",
       "line": "伊勢崎線",
       "station": "堀切",
       "reason": "outside_bounds_or_projection"
-    },
-    {
-      "operator": "千葉都市モノレール",
-      "line": "1号線",
-      "pair": [
-        "市役所前",
-        "千葉"
-      ],
-      "reason": "no_verified_in_bounds_geometry"
     },
     {
       "operator": "千葉都市モノレール",
@@ -1345,5 +1327,25 @@
       "reason": "disconnected_clipped_component"
     }
   ],
-  "exclusionPolicy": "The listed boundary omissions are intentional, not usable adjacency. Yokohama–Mitsuzawa-shimocho leaves the south boundary; Shiyakusho-mae–Chiba leaves the east boundary. Both stubs remain accessible via other in-bounds lines, so routes may detour. Any changed or additional omission must fail generation and be reviewed."
+  "exclusionPolicy": "Station scope remains unchanged. Only the two named existing-station connections may use original geometry slightly outside the rectangle, up to 5m and 60m respectively. All other geometry remains inside. Unexpected omissions or unused exceptions fail generation.",
+  "geometryBoundaryExceptions": [
+    {
+      "operator": "横浜市",
+      "line": "3号線",
+      "pair": [
+        "横浜",
+        "三ツ沢下町"
+      ],
+      "maxOutsideMetres": 5
+    },
+    {
+      "operator": "千葉都市モノレール",
+      "line": "1号線",
+      "pair": [
+        "市役所前",
+        "千葉"
+      ],
+      "maxOutsideMetres": 60
+    }
+  ]
 }

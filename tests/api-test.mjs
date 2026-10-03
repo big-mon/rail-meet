@@ -39,4 +39,4 @@ assert.equal(aliasResponse.status,200);const aliasBody=await aliasResponse.json(
 const homonyms=await (await aliasApi(req('stations?q='+encodeURIComponent('浅草')))).json();assert(homonyms.stations.some(s=>s.id==='浅草（つくばエクスプレス）'));assert(homonyms.stations.some(s=>s.id==='浅草'));
 console.log('PASS API alias lookup and separate homonymous station IDs');
 
-const gaps=await(await createApi(data)(req('recommendations',{origins:['市役所前','千葉']}))).json();assert.deepEqual(gaps.source.excludedConnections,[['横浜','三ツ沢下町'],['市役所前','千葉']]);
+const gaps=await(await createApi(data)(req('recommendations',{origins:['市役所前','千葉']}))).json();assert.deepEqual(gaps.source.excludedConnections,[]);assert.equal(gaps.candidates[0].station,'市役所前');assert(Math.abs(gaps.candidates[0].routes[1].km-.8725409937237553)<1e-9);

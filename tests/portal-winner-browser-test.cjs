@@ -13,15 +13,15 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
    assert.equal(await page.locator('.portal-options').count(),0);
    return names[0];
   }
-  await page.locator('#find').click();assert.equal(await onlyWinner(),'葛西臨海公園');
+  await page.locator('#find').click();assert.equal(await onlyWinner(),'新木場');
   await page.waitForSelector('.mouth-portal[data-phase=result]');await page.waitForTimeout(400);
   const box=await page.locator('.portal-result strong').boundingBox();assert(box.x>=0&&box.x+box.width<=width);
   await page.screenshot({path:`evidence/portal-winner-normal-${width}.png`});
   await page.keyboard.press('Escape');assert.equal(await page.locator('.mouth-portal').count(),0);
-  await page.locator('[data-candidate="1"]').evaluate(e=>e.click());assert.equal(await page.locator('#meeting-name').textContent(),'東陽町');
+  await page.locator('[data-candidate="1"]').evaluate(e=>e.click());assert.equal(await page.locator('#meeting-name').textContent(),'葛西臨海公園');
   await page.locator('#map').scrollIntoViewIfNeeded();await page.waitForSelector('.travel-piece');
   await page.locator('#origin-0').selectOption('新宿');
-  const latest=await page.locator('.candidate h3').first().textContent();assert.notEqual(latest,'葛西臨海公園');
+  const latest=await page.locator('.candidate h3').first().textContent();assert.notEqual(latest,'新木場');
   await page.locator('#find').evaluate(e=>{for(let i=0;i<8;i++)e.click()});assert.equal(await onlyWinner(),latest);
   await page.locator('[data-candidate="2"]').evaluate(e=>e.click());assert.equal(await page.locator('.mouth-portal').count(),0);
   await page.waitForTimeout(2800);assert.equal(await page.locator('.mouth-portal').count(),0);
