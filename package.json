@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "test": "node scripts/test.mjs && node scripts/motion-test.mjs && node scripts/reward-test.mjs",
-    "test:browser": "node scripts/browser-test.cjs && node scripts/display-reward-browser-test.cjs && node scripts/loop-browser-test.cjs && node scripts/arrival-browser-test.cjs && node scripts/ranking-layout-browser-test.cjs && node scripts/fit-boundary-browser-test.cjs && node scripts/portal-winner-browser-test.cjs",
+    "test:browser": "node scripts/browser-test.cjs && node scripts/display-reward-browser-test.cjs && node scripts/loop-browser-test.cjs && node scripts/arrival-browser-test.cjs && node scripts/ranking-layout-browser-test.cjs && node scripts/fit-boundary-browser-test.cjs && node scripts/portal-winner-browser-test.cjs && node scripts/fixed-map-browser-test.cjs",
     "test:loop": "node scripts/loop-browser-test.cjs",
     "test:arrival": "node scripts/arrival-browser-test.cjs",
     "test:ranking": "node scripts/ranking-layout-browser-test.cjs",

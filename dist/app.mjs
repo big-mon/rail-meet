@@ -6,7 +6,7 @@ import {validate,recommend} from './engine.mjs';
 const $=id=>document.getElementById(id), colors=['#2169be','#bf4c1d','#8a45b5','#147b61'],letters=['A','B','C','D'];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ll=p=>[p[1],p[0]];
-let data,origins=['千葉','横浜'],candidates=[],selected=0,visible=[],map,overlay,routeBounds,motionLayer,motionFrame;
+let data,origins=['千葉','横浜'],candidates=[],selected=0,map,overlay,routeBounds,motionLayer,motionFrame;
 let hasSearched=false;
 // Start both data requests together; background failure never blocks routing.
 const basemapReady=fetch('./basemap.json',{signal:AbortSignal.timeout(10000)}).then(r=>{if(!r.ok)throw Error('basemap');return r.json();}).catch(()=>null);
@@ -28,20 +28,20 @@ function calculate(animate=false){
  if(!data||!window.L)return;
  stopMotion();
  try{
-  candidates=recommend(data,origins);selected=0;visible=origins.map(()=>true);
+  candidates=recommend(data,origins);selected=0;
   if(!candidates.length)throw Error('全員が到達できる集合駅がありません。出発駅を変更してください。');
   $('status').className='';$('status').textContent=new Set(origins).size<origins.length?'同じ出発駅も、別々の参加者として比較しています。':'';
   $('results').hidden=false;
-  renderCandidates();document.dispatchEvent(new Event('results-layout'));renderSelection(true);if(animate)playMotion();else runRailMotion();
+  renderCandidates();document.dispatchEvent(new Event('results-layout'));renderSelection();if(animate)playMotion();else runRailMotion();
  }catch(e){$('results').hidden=true;$('status').textContent=e.message;$('status').className='error';}
 }
 function renderCandidates(){
  $('candidates').innerHTML=candidates.map((c,i)=>`<button type="button" class="candidate" aria-pressed="${i===selected}" data-candidate="${i}" aria-label="候補${i+1} ${esc(c.station)} 最大距離${km(c.max)}キロメートル"><div class="candidate-top"><span class="rank">距離順 ${i+1}位</span><span class="selected-label">${i===selected?'● 選択中':''}</span></div><h3>${esc(c.station)}</h3><p>最も遠い人 <b>${km(c.max)}</b> km</p><div class="spread">距離の差 ${km(c.spread)} km</div></button>`).join('');
  document.querySelectorAll('[data-candidate]').forEach(b=>b.addEventListener('click',()=>{
-  stopMotion();selected=Number(b.dataset.candidate);renderCandidates();renderSelection(true);document.querySelector(`[data-candidate="${selected}"]`).focus({preventScroll:true});runRailMotion();
+  stopMotion();selected=Number(b.dataset.candidate);renderCandidates();renderSelection();document.querySelector(`[data-candidate="${selected}"]`).focus({preventScroll:true});runRailMotion();
  }));
 }
-function renderSelection(fit){
+function renderSelection(){
  const c=candidates[selected],reward=expeditionReward(c.routes);
  renderReward(reward);
  $('meeting-name').textContent=c.station;
@@ -52,14 +52,11 @@ function renderSelection(fit){
   const lines=[...new Set(r.steps.map(s=>s.line))];
   return `<article class="route-card" data-rank="${rank}" data-person-index="${i}" style="--person:${colors[i]}"><div class="route-row"><span class="distance-rank">${rank}位</span><span class="person-dot">${letters[i]}</span><span>${esc(origins[i])}</span><strong>${km(r.km)} <small>km</small></strong></div>${reward.winners.includes(i)?'<p class="route-award"><img src="crown.svg" alt="" width="20" height="18">遠征の勇者</p>':''}<div class="bar"><span style="width:${c.max?r.km/c.max*100:0}%"></span></div>${r.steps.length?`<details><summary>${lines.map(esc).join(' → ')}<br>経由する駅を見る</summary><p class="stops">${r.stations.map(esc).join(' → ')}</p></details>`:'<p class="zero">集合駅と同じです。移動はありません。</p>'}</article>`;
  }).join('');
- $('legend').innerHTML=origins.map((o,i)=>`<button type="button" data-person="${i}" aria-pressed="${visible[i]}" aria-label="参加者 ${letters[i]} ${esc(o)} の経路表示"><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>${esc(o)}<b>${km(c.routes[i].km)} km</b></button>`).join('');
- document.querySelectorAll('[data-person]').forEach(b=>b.addEventListener('click',()=>{stopMotion();const i=Number(b.dataset.person);visible[i]=!visible[i];b.setAttribute('aria-pressed',visible[i]);drawRoutes(false);runRailMotion();}));
- if(!map)initMap();map.invalidateSize({pan:false});drawRoutes(fit);
+ $('legend').innerHTML=origins.map((o,i)=>`<span class="legend-item"><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>${esc(o)}<b>${km(c.routes[i].km)} km</b></span>`).join('');
+ if(!map)initMap();map.invalidateSize({pan:false});drawRoutes();
 }
 function initMap(){
- map=L.map('map',{scrollWheelZoom:false,zoomAnimation:false,fadeAnimation:false,minZoom:8,maxZoom:17,zoomSnap:.1,maxBounds:[[35.15,139.25],[36.1,140.45]],maxBoundsViscosity:.8,zoomControl:true,attributionControl:false});
- map.zoomControl.setPosition('topright');map.zoomControl._zoomInButton.title='拡大';map.zoomControl._zoomOutButton.title='縮小';
- map.zoomControl._zoomInButton.setAttribute('aria-label','地図を拡大');map.zoomControl._zoomOutButton.setAttribute('aria-label','地図を縮小');
+ map=L.map('map',{dragging:false,touchZoom:false,doubleClickZoom:false,scrollWheelZoom:false,boxZoom:false,keyboard:false,tapHold:false,zoomAnimation:false,fadeAnimation:false,minZoom:8,maxZoom:17,zoomSnap:.1,zoomControl:false,attributionControl:false});
  L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
  overlay=L.layerGroup().addTo(map);motionLayer=L.layerGroup().addTo(map);
  new IntersectionObserver(entries=>{mapOnScreen=entries[0].isIntersecting;syncRailMotion();}).observe($('map'));
@@ -84,11 +81,11 @@ async function loadBasemap(){
   $('background-status').textContent='背景を取得できません · 経路は表示中。再読み込みで再試行できます。';
  }
 }
-function drawRoutes(fit){
+function drawRoutes(){
  stopMotion();
  const c=candidates[selected];overlay.clearLayers();const used=new Map(),allPoints=[];
  data.edges.forEach(e=>L.polyline(e.coords.map(ll),{color:'#96a99c',weight:1.7,opacity:.55,interactive:false}).addTo(overlay));
- c.routes.forEach((r,i)=>{r.steps.forEach(s=>{allPoints.push(...s.coords.map(ll));if(visible[i]){if(!used.has(s.edge))used.set(s.edge,[]);used.get(s.edge).push(i);}});allPoints.push(ll(data.stations.find(s=>s.id===origins[i]).coords));});
+ c.routes.forEach((r,i)=>{r.steps.forEach(s=>{allPoints.push(...s.coords.map(ll));if(!used.has(s.edge))used.set(s.edge,[]);used.get(s.edge).push(i);});allPoints.push(ll(data.stations.find(s=>s.id===origins[i]).coords));});
  for(const [edge,people] of used){
   const points=data.edges[edge].coords.map(ll);
   L.polyline(points,{color:'white',weight:people.length*4+4,opacity:1,interactive:false}).addTo(overlay);
@@ -100,19 +97,17 @@ function drawRoutes(fit){
   const isDest=s.id===c.station,participants=origins.map((o,i)=>o===s.id?i:-1).filter(i=>i>=0);
   const active=participants.length>0;
   if(!routeStations.has(s.id)&&!labels.has(s.id))return;
-  const marker=L.circleMarker(ll(s.coords),{radius:isDest?8:active?6:2.5,color:isDest?'#163e36':active?colors[participants[0]]:'#7c9284',fillColor:isDest?'#c5dd79':'#fff',weight:isDest||active?3:1,fillOpacity:1}).addTo(overlay);
+  const marker=L.circleMarker(ll(s.coords),{radius:isDest?8:active?6:2.5,color:isDest?'#163e36':active?colors[participants[0]]:'#7c9284',fillColor:isDest?'#c5dd79':'#fff',weight:isDest||active?3:1,fillOpacity:1,interactive:false}).addTo(overlay);
   if(active){
    const description=`出発地 ${s.id}：参加者 ${participants.map(i=>letters[i]).join('・')}`;
    const badgeHTML=participants.map(i=>`<span class="origin-badge" data-origin-person="${letters[i]}" style="--person:${colors[i]}">${letters[i]}</span>`).join('');
    const bubble=`<div class="origin-callout${participants.length>1?' shared-origin':''}" style="--origin-color:${participants.length===1?colors[participants[0]]:'#435e58'}" role="img" aria-label="${esc(description)}"><span class="origin-badges">${badgeHTML}</span><span class="origin-name">${esc(s.id)}</span></div>`;
    L.marker(ll(s.coords),{interactive:false,keyboard:false,zIndexOffset:1000,icon:L.divIcon({className:'origin-marker',html:bubble,iconSize:[0,0],iconAnchor:[0,0]})}).addTo(overlay);
   }
-  const text=`${isDest?'★ ':''}${s.id}`;
-  const west=['渋谷','新宿','池袋'].includes(s.id);const direction=isDest?'bottom':west?'left':s.id==='東京'?'bottom':'right';
-  if(!active||isDest)marker.bindTooltip(esc(text),{permanent:labels.has(s.id),direction,offset:isDest?[8,12]:west?[-8,0]:direction==='bottom'?[0,8]:[8,0],className:`station-name${isDest?' destination-label':''}`});
+  if(isDest)marker.bindTooltip(esc('★ '+s.id),{permanent:true,direction:'bottom',offset:[8,12],className:'station-name destination-label'});
  });
  allPoints.push(ll(data.stations.find(s=>s.id===c.station).coords));routeBounds=L.latLngBounds(allPoints);
- if(fit)fitRoutes();
+ fitRoutes();
  // Only result/selection/size changes fit the map; animation frames never do.
  $('map').setAttribute('aria-label',`${origins.join('・')}から${c.station}までの鉄道経路。共通区間は色の縞で表示。`);
 }
@@ -121,14 +116,10 @@ function fitRoutes(){
  const labels=[...document.querySelectorAll('.origin-callout,.destination-label')].map(e=>e.getBoundingClientRect());
  const halfWidth=Math.max(15,...labels.map(r=>r.width/2));
  const height=Math.max(20,...labels.map(r=>r.height));
- const zoomWidth=document.querySelector('.leaflet-control-zoom')?.getBoundingClientRect().width||32;
  const legend=document.body.classList.contains('showtime')?$('legend').getBoundingClientRect().height:0;
  const zero=candidates[selected].routes.every(r=>r.km===0);
  const options={paddingTopLeft:[halfWidth+8,Math.max(height+21,legend+14)],paddingBottomRight:[halfWidth+8,height+22],maxZoom:zero?15:17,animate:false};
  map.fitBounds(routeBounds,options);
- const controls=document.querySelector('.leaflet-control-zoom')?.getBoundingClientRect();
- const collides=controls&&[...document.querySelectorAll('.origin-callout,.destination-label')].some(e=>{const r=e.getBoundingClientRect();return r.left<controls.right+4&&r.right>controls.left-4&&r.top<controls.bottom+4&&r.bottom>controls.top-4;});
- if(collides){options.paddingBottomRight[0]+=zoomWidth+8;map.fitBounds(routeBounds,options);}
 }
 async function load(){
  data=undefined;renderInputs();$('find').disabled=true;$('status').className='';$('status').textContent='鉄道データを読み込んでいます…';$('results').hidden=true;$('add').disabled=true;
@@ -164,7 +155,7 @@ function syncRailMotion(){
  cancelAnimationFrame(motionFrame);motionFrame=undefined;motionLayer?.clearLayers();
  if(!loopWanted||!mapOnScreen||document.hidden||reducedMotion.matches||!motionLayer||$('results').hidden)return;
  const paths=candidates[selected].routes.map(motionPath);
- const pieces=paths.map((path,i)=>visible[i]&&path.total>0?L.marker(ll(pointAt(path,0)),{interactive:false,keyboard:false,zIndexOffset:2000,icon:L.divIcon({className:'travel-marker',html:`<span class="travel-piece" style="--person:${colors[i]};--slot:${i-(origins.length-1)/2}">${letters[i]}</span>`,iconSize:[30,30],iconAnchor:[15,15]})}).addTo(motionLayer):null);
+ const pieces=paths.map((path,i)=>path.total>0?L.marker(ll(pointAt(path,0)),{interactive:false,keyboard:false,zIndexOffset:2000,icon:L.divIcon({className:'travel-marker',html:`<span class="travel-piece" style="--person:${colors[i]};--slot:${i-(origins.length-1)/2}">${letters[i]}</span>`,iconSize:[30,30],iconAnchor:[15,15]})}).addTo(motionLayer):null);
  if(!pieces.some(Boolean))return;
  const start=performance.now(),duration=2400,pause=650,arrived=paths.map(()=>false);
  const destination=ll(data.stations.find(s=>s.id===candidates[selected].station).coords);

@@ -29,7 +29,7 @@
 .showtime .map-panel{position:relative;isolation:isolate;overflow:hidden;border:3px solid #142138;box-shadow:4px 5px 0 #142138}
 .showtime #map{position:absolute;min-height:275px;border:2px solid #17233d;border-radius:8px;z-index:2}
 .showtime #legend{position:absolute;padding:0;z-index:5;gap:5px}
-.showtime #legend button{min-height:35px;padding:5px 7px;font-size:11px}
+.showtime #legend .legend-item{min-height:35px;padding:5px 7px;font-size:11px}
 .showtime #celebration{display:contents}
 .showtime #reward{position:absolute;bottom:14px;right:16px;width:62%;min-height:110px;z-index:5;margin:0;background:#fff2be;border:3px solid #17233d;box-shadow:4px 5px 0 #17233d}
 .showtime .reward-heading>strong{font-size:23px}
@@ -62,7 +62,7 @@
 .showtime .map-panel{height:540px;min-height:540px;max-height:none}
 .showtime #map{top:50px;left:6px;right:6px;width:auto;height:255px;min-height:255px;border-radius:5px}
 .showtime #legend{top:308px;left:8px;right:8px;bottom:auto;width:auto;gap:4px}
-.showtime #legend button{min-height:30px;padding:3px 5px;font-size:10px}
+.showtime #legend .legend-item{min-height:30px;padding:3px 5px;font-size:10px}
 .showtime #legend .person-dot{width:19px;height:19px;font-size:10px}
 .showtime #reward{right:8px;bottom:12px;width:53%;min-height:118px;padding:8px;box-shadow:2px 3px 0 #17233d}
 .showtime .reward-heading{gap:4px}
@@ -92,7 +92,7 @@
 .showtime .origin-name{font-size:10px}
 .showtime .station-name{font-size:10px!important;padding:2px 4px!important}}
 @media(max-width:760px){.showtime #legend{top:52px;left:10px;right:44px;bottom:auto;width:auto}
-.showtime #legend button{background:#ffffffed}
+.showtime #legend .legend-item{background:#ffffffed}
 .showtime #legend .person-dot{flex-shrink:0}}
 @media(max-width:760px) and (max-height:750px){.showtime #map{height:calc(var(--stage-height,430px) - 238px);min-height:180px}
 .showtime #reward{min-height:108px}}
@@ -105,10 +105,10 @@
 .showtime #legend{bottom:auto}
 @media(max-width:760px){.showtime #map{top:6px;height:calc(var(--stage-height,520px) - 230px)}}
 .showtime #legend{pointer-events:none}
-.showtime #legend button{pointer-events:auto}
+
 .showtime .map-panel{background:#f0f2e8}
 .showtime #map{top:6px;left:6px;right:6px;width:auto;height:calc(100% - 12px)}
-.showtime #legend{left:10px;right:48px;width:auto;top:8px}
+.showtime #legend{left:10px;right:10px;width:auto;top:8px}
 .showtime .details #celebration{display:block}
 .showtime .details #reward{position:static;width:auto;min-height:0;margin:0;box-shadow:none}
 .showtime #route-details{display:block}
