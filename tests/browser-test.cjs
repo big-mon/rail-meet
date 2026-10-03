@@ -71,7 +71,7 @@ const assert=require('node:assert/strict');const fs=require('node:fs');
  await failure.screenshot({path:'evidence/load-failure.png'});
  await failure.unroute('**/network.json');await failure.locator('#retry').click();await openResults(failure);await failure.waitForSelector('.candidate');results.push('Data load failure, no stale results, and successful retry');
  // Unreachable UI with a valid but isolated fixture (never shipped).
- const data=JSON.parse(fs.readFileSync('dist/network.json'));
+ const data=JSON.parse(fs.readFileSync('public/network.json'));
  data.stations.push({id:'孤立駅',coords:[140,35]});await failure.route('**/network.json',r=>r.fulfill({json:data}));await failure.reload();await openResults(failure);await failure.waitForSelector('.candidate');await failure.locator('#origin-0').selectOption('孤立駅');assert(await failure.locator('#results').isHidden());assert.match(await failure.locator('#status').textContent(),/到達/);results.push('Unreachable UI gives actionable error');
  assert.deepEqual(errors,[]);assert(requests.every(u=>u.startsWith((process.env.TEST_URL||'http://127.0.0.1:4173')+'/')));results.push('Zero external requests, zero raster tile images, zero JavaScript errors');assert.equal(await page.locator('.leaflet-tile').count(),0);fs.writeFileSync('evidence/browser-tests.json',JSON.stringify({result:'PASS',checks:results,pageErrors:errors,browser:await browser.version(),externalRequests:requests.filter(u=>!u.startsWith((process.env.TEST_URL||'http://127.0.0.1:4173')+'/'))},null,2));console.log(results.join('\n'));await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

@@ -82,7 +82,7 @@ for line,label,names in CHAINS:
 popular='東京 新宿 渋谷 池袋 横浜 千葉 品川 上野 秋葉原 錦糸町 吉祥寺 三鷹 船橋 津田沼'.split()
 ordered=popular+[s for s in locations if s not in popular]
 result['stations']=[{'id':s,'coords':locations[s]} for s in ordered if s in locations]
-(ROOT/'dist/network.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':')))
+(ROOT/'public/network.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':')))
 (ROOT/'evidence').mkdir(exist_ok=True)
 (ROOT/'evidence/data-audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2))
 print('stations',len(result['stations']),'edges',len(result['edges']))

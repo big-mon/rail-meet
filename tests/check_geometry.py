@@ -1,7 +1,7 @@
 """Ensure every displayed railway segment lies on a source N02 line (including projected endpoints)."""
 import json,pathlib,math
 root=pathlib.Path(__file__).resolve().parents[1]
-network=json.loads((root/'dist/network.json').read_text());sections=json.loads((root/'data-source/sections.json').read_text())
+network=json.loads((root/'public/network.json').read_text());sections=json.loads((root/'data-source/sections.json').read_text())
 by_line={}
 for s in sections:
  cs=s['coordinates'];paths=[cs] if isinstance(cs[0][0],(int,float)) else cs

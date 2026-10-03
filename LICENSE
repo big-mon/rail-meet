@@ -21,5 +21,5 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 This license covers original application code only. Railway/boundary data,
-Leaflet, and original artwork carry their own licenses; see dist/sources.html
-and dist/artwork-LICENSE.txt. Third-party license notices are retained in dist/vendor/.
+Leaflet, and original artwork carry their own licenses; see public/sources.html
+and public/artwork-LICENSE.txt. Third-party license notices are retained in public/vendor/.

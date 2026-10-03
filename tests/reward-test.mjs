@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import {expeditionReward as reward} from '../dist/rewards.mjs';
-import {formatKm} from '../dist/distance.mjs';
+import {expeditionReward as reward} from '../public/rewards.mjs';
+import {formatKm} from '../public/distance.mjs';
 const test=(kms,winners)=>{const r=reward(kms.map(km=>({km})));assert.deepEqual(r.winners,winners);for(const i of winners)assert.equal(formatKm(kms[i]),formatKm(r.max));};
 test([33.92635034550794,33.945039083995454],[0,1]);
 test([33.9499,33.9501],[1]);test([33.9001,33.94,33.949],[0,1,2]);test([5.001,5.01,5.02,5.049],[0,1,2,3]);

@@ -7,16 +7,26 @@
 ## 起動
 
 ```sh
-python3 -m http.server 4173 --directory dist
+python3 scripts/build_data.py
+python3 scripts/build_basemap.py
+python3 -m http.server 4173 --directory public
 ```
 
-http://localhost:4173 を開きます。通常利用にnpm installやビルドは不要。配布時は `dist/` を静的HTTPホストへ配置してください。JSONを読み込むため `file://` では動作しません。
+http://localhost:4173 を開きます。初回取得後は上のPythonコマンドでJSON 2点を生成します。npm installやアプリのコンパイルは不要です。配布時は生成済みの `public/` を静的HTTPホストへ配置してください。JSONを読み込むため `file://` では動作しません。
+
+配信用アーカイブは次のコマンドで作成できます。JSONを再生成して含めるため、`git archive`だけで配信用ファイルを作らないでください。
+
+```sh
+python3 scripts/package_site.py /tmp/rail-meet-site.tar.gz
+```
+
+アーカイブには `public/` が入り、Sites内部checkoutに配信設定がある場合だけ `.openai/hosting.json` も入ります。公開repoにはSites設定や検証画像を含めません。PNGは確定素材として保持し、データ生成コマンドでは再生成しません。
 
 ## 距離と候補
 
 出発地は2〜4人。千葉・横浜が初期値です。最も遠い人の距離、最大と最小の差、合計距離、駅名の順に昇順で比較し、候補を3件表示します。順位は丸め前の値で計算し、画面の距離は小数1桁です。
 
-対象は76駅・80区間。山手線全周、中央・総武各駅停車の三鷹〜千葉、総武線の東京〜錦糸町、神田〜御茶ノ水、京浜東北線沿いの東京〜横浜です。対象外の路線を経由する近道は探索しません。全駅は `dist/network.json` を参照してください。
+対象は76駅・80区間。山手線全周、中央・総武各駅停車の三鷹〜千葉、総武線の東京〜錦糸町、神田〜御茶ノ水、京浜東北線沿いの東京〜横浜です。対象外の路線を経由する近道は探索しません。全駅は `public/network.json` を参照してください。
 
 鉄道形状の各線分の球面距離を合計し、明示した駅の接続だけを使ってDijkstra法で最短経路を求めます。線路の交差だけで乗換を作りません。駅位置は形状へ投影し、平行線路は代表形状を使用します。ホーム間徒歩はゼロ距離扱いです。
 
@@ -33,12 +43,12 @@ http://localhost:4173 を開きます。通常利用にnpm installやビルド�
 ## データとライセンス
 
 - 鉄道：国土交通省 [N02-24](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2024.html)、2024年12月31日時点、[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja)。[公開ミラー](https://github.com/antfu/mlit-json/tree/8e19627dc5db492ea4a3d9fd8501d5ccb862ef28)から取得。対象路線を抽出し、駅への投影・駅間分割を行っています。2025年版は使用していません。
-- 背景：国土交通省 [N03-19_190101](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v2_3.html)、2019年1月1日時点。[適用利用規約](https://nlftp.mlit.go.jp/ksj/other/agreement.html)（現行PDL1.0）に従います。[公開ミラー](https://github.com/piuccio/open-data-jp-prefectures-geojson/tree/513fb852832c99470e16b95a30ddd68bf3469dc0)での統合・簡略化後、関東周辺の都県を抽出し、輪郭を約160〜200m相当で簡略化しています。ミラーのMIT表記は `dist/vendor/prefectures-LICENSE.txt` に保持。
-- Leaflet：BSD 2-Clause。全文は `dist/vendor/leaflet-LICENSE.txt`。
-- ドッツンと王冠：承認された金髪・巨大8bitサングラスの男性バストアップ2表情PNGと王冠SVG、CC0（権利が存在する範囲）。`dist/artwork-LICENSE.txt`。
+- 背景：国土交通省 [N03-19_190101](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v2_3.html)、2019年1月1日時点。[適用利用規約](https://nlftp.mlit.go.jp/ksj/other/agreement.html)（現行PDL1.0）に従います。[公開ミラー](https://github.com/piuccio/open-data-jp-prefectures-geojson/tree/513fb852832c99470e16b95a30ddd68bf3469dc0)での統合・簡略化後、関東周辺の都県を抽出し、輪郭を約160〜200m相当で簡略化しています。ミラーのMIT表記は `public/vendor/prefectures-LICENSE.txt` に保持。
+- Leaflet：BSD 2-Clause。全文は `public/vendor/leaflet-LICENSE.txt`。
+- ドッツンと王冠：承認された金髪・巨大8bitサングラスの男性バストアップ2表情PNGと王冠SVG、CC0（権利が存在する範囲）。`public/artwork-LICENSE.txt`。
 - 独自アプリコード：MIT（`LICENSE`）。データ・ライブラリ・素材には上記の個別条件が適用されます。
 
-詳細な原典、従前と今回の加工、免責は `dist/sources.html`、取得ハッシュは `data-source/provenance.json` にあります。タイルサーバー、CDN、有料経路APIへの実行時通信はありません。
+詳細な原典、従前と今回の加工、免責は `public/sources.html`、取得ハッシュは `data-source/provenance.json` にあります。タイルサーバー、CDN、有料経路APIへの実行時通信はありません。
 
 ## 再生成・テスト
 
@@ -47,7 +57,7 @@ Python 3とNode.jsを使用します。データ再生成・計算テストに�
 ```sh
 python3 scripts/build_data.py
 python3 scripts/build_basemap.py
-python3 scripts/check_geometry.py
+python3 tests/check_geometry.py
 npm test
 ```
 
@@ -63,9 +73,10 @@ npm run test:browser
 
 ## 構成
 
-- `dist/`：そのまま配信するサイトと加工済みデータ
+- `public/`：手書きの静的ソース・確定素材・同梱ライブラリ。`network.json` と `basemap.json` だけは生成物としてGit管理から除外
 - `data-source/`：再生成用の範囲限定データと来歴
-- `scripts/`：データ生成と検証
+- `scripts/`：データ生成と配信用アーカイブの作成
+- `tests/`：計算・原典形状・ブラウザの検証
 
 ## 演出と旧リンク
 

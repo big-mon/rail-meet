@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {validate,haversine,shortest,restore,recommend} from '../dist/engine.mjs';
-const data=validate(JSON.parse(fs.readFileSync(new URL('../dist/network.json',import.meta.url))));
+import {validate,haversine,shortest,restore,recommend} from '../public/engine.mjs';
+const data=validate(JSON.parse(fs.readFileSync(new URL('../public/network.json',import.meta.url))));
 assert.equal(data.stations.length,76);assert.equal(data.edges.length,80);
 assert(Math.abs(haversine([0,0],[1,0])-111.19508)<.001);
 const candidates=recommend(data,['千葉','横浜']);
@@ -41,5 +41,5 @@ const scenarioResults=scenarios.map(origins=>{
  const cs=recommend(data,origins);const oracle=names.map((station,j)=>{const ds=origins.map(o=>all[idx.get(o)][j]);return {station,max:Math.max(...ds),spread:Math.max(...ds)-Math.min(...ds),total:ds.reduce((a,b)=>a+b,0)};}).sort((a,b)=>a.max-b.max||a.spread-b.spread||a.total-b.total||a.station.localeCompare(b.station,'ja'));
  assert.deepEqual(cs.map(c=>c.station),oracle.slice(0,3).map(c=>c.station));return {origins,candidates:cs.map(c=>({station:c.station,distances:c.routes.map(r=>r.km)}))};
 });
-const base=JSON.parse(fs.readFileSync(new URL('../dist/basemap.json',import.meta.url)));assert.equal(base.features.length,9);assert(fs.statSync(new URL('../dist/basemap.json',import.meta.url)).size<110000);assert(base.features.every(f=>Object.keys(f.properties).join()==='name'));
+const base=JSON.parse(fs.readFileSync(new URL('../public/basemap.json',import.meta.url)));assert.equal(base.features.length,9);assert(fs.statSync(new URL('../public/basemap.json',import.meta.url)).size<110000);assert(base.features.every(f=>Object.keys(f.properties).join()==='name'));
 console.log(JSON.stringify({result:'PASS',allPairsChecked:n*n,scenarioResults,checks:['distance','ranking','path restoration','explicit Tokyo transfer','crossing is not a transfer','same station','duplicate origin','unreachable','invalid input','corrupt data','reverse paths','5776 all-pairs oracle comparisons','six origin scenarios','continuous Chuo-Sobu local path','76-station connected network','small basemap without roads or POIs'],defaultCandidates:candidates.map(c=>({station:c.station,max:c.max,distances:c.routes.map(r=>r.km)})),chibaYokohamaKm:chibaYokohama.km},null,2));

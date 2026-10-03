@@ -6,3 +6,6 @@ __pycache__/
 .openai/
 *.zip
 *.tar.gz
+
+/public/network.json
+/public/basemap.json

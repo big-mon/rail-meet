@@ -29,5 +29,5 @@ for f in data['features']:
   if out:selected.append(out)
  if selected:features.append({'type':'Feature','properties':{'name':f['properties']['P']},'geometry':{'type':'MultiPolygon','coordinates':selected}})
 output={'type':'FeatureCollection','features':features,'source':{'dataset':'国土数値情報 N03-19_190101','date':'2019-01-01','license':'国土数値情報の適用利用規約（PDL1.0）','processing':'都県単位に統合された公開ミラーから抽出、約160〜200mで輪郭を簡略化。小島省略。位置関係の概略表示専用。'}}
-(ROOT/'dist/basemap.json').write_text(json.dumps(output,ensure_ascii=False,separators=(',',':')))
-print(len(features),'prefectures;', (ROOT/'dist/basemap.json').stat().st_size,'bytes')
+(ROOT/'public/basemap.json').write_text(json.dumps(output,ensure_ascii=False,separators=(',',':')))
+print(len(features),'prefectures;', (ROOT/'public/basemap.json').stat().st_size,'bytes')

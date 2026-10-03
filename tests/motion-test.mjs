@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {recommend} from '../dist/engine.mjs';
-import {motionPath,pointAt} from '../dist/motion.mjs';
-const data=JSON.parse(fs.readFileSync(new URL('../dist/network.json',import.meta.url)));
+import {recommend} from '../public/engine.mjs';
+import {motionPath,pointAt} from '../public/motion.mjs';
+const data=JSON.parse(fs.readFileSync(new URL('../public/network.json',import.meta.url)));
 for(const origins of [['千葉','横浜'],['千葉','千葉'],['三鷹','千葉','渋谷','横浜']]){
  for(const c of recommend(data,origins))for(const route of c.routes){
   const path=motionPath(route);assert(Math.abs(path.total-route.km)<.001);
