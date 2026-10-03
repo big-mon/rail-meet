@@ -253,3 +253,5 @@ header{height:auto;min-height:76px;display:flex;flex-wrap:wrap;justify-content:f
 .header-description{font-size:13px}}
 #map{pointer-events:none;touch-action:auto;cursor:default}
 .legend-item{border:1px solid #c7d3ca;border-radius:9px;background:#fff;color:var(--green);font-weight:650}
+
+.brand-name{font:inherit;letter-spacing:inherit;margin:0}
