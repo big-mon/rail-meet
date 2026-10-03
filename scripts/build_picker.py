@@ -32,6 +32,35 @@ def build_picker(root, network):
             routes.append(dict(id=operator+'/'+title, operator=operator,
                 operatorName=spec['operators'].get(operator, operator), label=title,
                 stations=stops, loop=loop, reference=c['reference']))
+    # Group only explicitly reviewed, same-company line families. This is a
+    # station finder, not a train/service selector; routing edges stay untouched.
+    by_id = {r['id']: r for r in routes}
+    merged, consumed = [], set()
+    for group in spec['pickerGroups']:
+        seen, sections, references = set(), [], []
+        for part in group['parts']:
+            route = by_id[group['operator']+'/'+part['route']]
+            consumed.add(route['id'])
+            references.append(route['reference'])
+            names = [s['name'] for s in route['stations']]
+            start = names.index(part.get('from', names[0]))
+            end = names.index(part.get('to', names[-1]))
+            step = 1 if end >= start else -1
+            stops = []
+            for i in range(start, end+step, step):
+                stop = route['stations'][i]
+                if stop['id'] not in seen:
+                    stops.append(stop)
+                    seen.add(stop['id'])
+            if stops:
+                sections.append(dict(label=part['label'], stations=stops))
+        merged.append(dict(id=group['operator']+'/'+group['label'],
+            operator=group['operator'], operatorName=route['operatorName'],
+            label=group['label'], groups=sections,
+            stations=[s for section in sections for s in section['stations']],
+            reference=references[0], references=list(dict.fromkeys(references))))
+    assert {s['id'] for r in routes if r['id'] in consumed for s in r['stations']} == {s['id'] for r in merged for s in r['stations']}, 'Grouping dropped stations'
+    routes = merged + [r for r in routes if r['id'] not in consumed]
     assert len({r['id'] for r in routes}) == len(routes)
     assert {s['id'] for r in routes for s in r['stations']} == known, 'Unselectable stations'
     network['selectionRoutes'] = routes
