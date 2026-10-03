@@ -24,6 +24,12 @@ python3 -m http.server 4173 --directory public
 python3 scripts/package_site.py /tmp/rail-meet-site.tar.gz
 ```
 
+## API
+
+[仕様](public/developers.html) / [OpenAPI](public/openapi.json)。駅検索GET・計算POST、UIと同じ計算処理を使います。静的なローカルサーバーはAPIを実行しません。app-hubの既存Workerへの登録・公開は別PRで行います。
+
+厳密な全拠点レート制限や費用上限は未設定です。公開前に既存Cloudflareプランの枠・超過時挙動を確認してください。アカウント設定は変更していません。
+
 ## 出典・ライセンス
 
 アプリコードは[MIT License](LICENSE)。データ・地図ライブラリ・素材には個別の条件が適用されます。[出典とライセンス](public/sources.html)と[データの来歴](data-source/provenance.json)を参照してください。

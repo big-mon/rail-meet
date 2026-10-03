@@ -2,8 +2,8 @@
   "name": "rail-meet",
   "private": true,
   "scripts": {
-    "test": "node tests/test.mjs && node tests/motion-test.mjs && node tests/reward-test.mjs",
-    "test:browser": "node tests/browser-test.cjs && node tests/display-reward-browser-test.cjs && node tests/loop-browser-test.cjs && node tests/arrival-browser-test.cjs && node tests/ranking-layout-browser-test.cjs && node tests/fit-boundary-browser-test.cjs && node tests/portal-winner-browser-test.cjs && node tests/fixed-map-browser-test.cjs",
+    "test": "node tests/test.mjs && node tests/motion-test.mjs && node tests/reward-test.mjs && node tests/api-test.mjs",
+    "test:browser": "node tests/browser-test.cjs && node tests/display-reward-browser-test.cjs && node tests/loop-browser-test.cjs && node tests/arrival-browser-test.cjs && node tests/ranking-layout-browser-test.cjs && node tests/fit-boundary-browser-test.cjs && node tests/portal-winner-browser-test.cjs && node tests/fixed-map-browser-test.cjs && node tests/share-browser-test.cjs",
     "test:loop": "node tests/loop-browser-test.cjs",
     "test:arrival": "node tests/arrival-browser-test.cjs",
     "test:ranking": "node tests/ranking-layout-browser-test.cjs",

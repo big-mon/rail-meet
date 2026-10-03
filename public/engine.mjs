@@ -41,6 +41,6 @@ export function recommend(data,origins){
  const trees=origins.map(s=>shortest(data,s));
  return data.stations.map(s=>{
   const ds=trees.map(t=>t.distances.get(s.id));if(ds.some(d=>d===undefined))return null;
-  return {station:s.id,max:Math.max(...ds),spread:Math.max(...ds)-Math.min(...ds),total:ds.reduce((a,b)=>a+b,0),routes:trees.map(t=>restore(data,t,s.id))};
- }).filter(Boolean).sort((a,b)=>a.max-b.max||a.spread-b.spread||a.total-b.total||a.station.localeCompare(b.station,'ja')).slice(0,3);
+  return {station:s.id,max:Math.max(...ds),spread:Math.max(...ds)-Math.min(...ds),total:ds.reduce((a,b)=>a+b,0)};
+ }).filter(Boolean).sort((a,b)=>a.max-b.max||a.spread-b.spread||a.total-b.total||a.station.localeCompare(b.station,'ja')).slice(0,3).map(c=>({...c,routes:trees.map(t=>restore(data,t,c.station))}));
 }
