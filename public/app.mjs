@@ -3,6 +3,7 @@ import {formatKm as km} from './distance.mjs';
 import {expeditionReward} from './rewards.mjs';
 import {motionPath,pointAt} from './motion.mjs';
 import {validate,recommend} from './engine.mjs';
+import {readShare} from './share.mjs';
 const $=id=>document.getElementById(id), colors=['#2169be','#bf4c1d','#8a45b5','#147b61'],letters=['A','B','C','D'];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ll=p=>[p[1],p[0]];
@@ -21,7 +22,12 @@ function renderInputs(){
  document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{origins.splice(Number(b.dataset.remove),1);renderInputs();updateOrigins();$('add').focus({preventScroll:true});}));
  $('add').disabled=!data||origins.length>=4;
 }
+function clearSharedLocation(){
+ const p=new URLSearchParams(location.hash.slice(1));
+ if(p.has('v')||p.has('from')||p.has('to'))history.replaceState(null,'',location.pathname+location.search);
+}
 function updateOrigins(){
+ clearSharedLocation();
  if(hasSearched)calculate();else stopMotion();
 }
 function calculate(animate=false){
@@ -38,7 +44,7 @@ function calculate(animate=false){
 function renderCandidates(){
  $('candidates').innerHTML=candidates.map((c,i)=>`<button type="button" class="candidate" aria-pressed="${i===selected}" data-candidate="${i}" aria-label="候補${i+1} ${esc(c.station)} 最大距離${km(c.max)}キロメートル"><div class="candidate-top"><span class="rank">距離順 ${i+1}位</span><span class="selected-label">${i===selected?'● 選択中':''}</span></div><h3>${esc(c.station)}</h3><p>最も遠い人 <b>${km(c.max)}</b> km</p><div class="spread">距離の差 ${km(c.spread)} km</div></button>`).join('');
  document.querySelectorAll('[data-candidate]').forEach(b=>b.addEventListener('click',()=>{
-  stopMotion();selected=Number(b.dataset.candidate);renderCandidates();renderSelection();document.querySelector(`[data-candidate="${selected}"]`).focus({preventScroll:true});runRailMotion();
+  clearSharedLocation();stopMotion();selected=Number(b.dataset.candidate);renderCandidates();renderSelection();document.querySelector(`[data-candidate="${selected}"]`).focus({preventScroll:true});runRailMotion();
  }));
 }
 function renderSelection(){
@@ -124,16 +130,27 @@ async function load(){
  data=undefined;renderInputs();$('find').disabled=true;$('status').className='';$('status').textContent='鉄道データを読み込んでいます…';$('results').hidden=true;$('add').disabled=true;
  try{
   const response=await fetch('./network.json',{signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error('load');data=validate(await response.json());
-  if(!window.L)throw Error('map');renderInputs();$('status').textContent='';$('find').disabled=false;
+  if(!window.L)throw Error('map');renderInputs();$('status').textContent='';$('find').disabled=false;applyShare();
  }catch{
   $('status').className='error';$('status').innerHTML='データを読み込めませんでした。通信状態を確認して再試行してください。<button class="retry" type="button" id="retry">再読み込み</button>';
   $('retry').addEventListener('click',()=>window.L?load():location.reload());
  }
 }
+function applyShare(){
+ if(!data)return;
+ try{
+  const shared=readShare(location.hash,data);if(!shared)return;
+  origins=shared.origins;renderInputs();hasSearched=true;calculate();
+  const index=candidates.findIndex(c=>c.station===shared.station);
+  if(index<0)throw Error('共有された集合駅は現在の上位3候補にありません。出発駅から検索し直してください。');
+  selected=index;renderCandidates();renderSelection();runRailMotion();
+ }catch(e){stopMotion();$('results').hidden=true;$('status').className='error';$('status').textContent=e.message;}
+}
+window.addEventListener('hashchange',applyShare);
 $('add').addEventListener('click',()=>{if(origins.length>=4)return;origins.push('東京');renderInputs();updateOrigins();$(`origin-${origins.length-1}`).focus({preventScroll:true});joinPerson(origins.length-1);});
 $('find').addEventListener('click',()=>{
  if(!data||$('find').disabled)return;
- const first=!hasSearched;hasSearched=true;calculate(true);
+ clearSharedLocation();const first=!hasSearched;hasSearched=true;calculate(true);
  if(first&&!$('results').hidden)animateFeedback($('results'),[{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'translateY(0)'}],{duration:260});
  animateFeedback($('find'),[{transform:'scale(1)'},{transform:'scale(.98)'},{transform:'scale(1)'}],{duration:220});
 });
