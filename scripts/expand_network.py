@@ -73,6 +73,11 @@ def expand(root, result, sections, stations, distance, project, route):
         if u in reachable:continue
         reachable.add(u);todo.extend(adjacency[u]-reachable)
     for name in sorted(locations.keys()-reachable):excluded.append(dict(station=name,reason='disconnected_clipped_component'))
+    # Boundary omissions are an explicit reviewed contract. Never publish new holes silently.
+    key=lambda e:json.dumps(e,sort_keys=True,ensure_ascii=False)
+    actual={key(e) for e in excluded};expected={key(e) for e in spec['expectedExclusions']}
+    if actual!=expected:
+        raise ValueError(f'Unexpected coverage exclusions: added={sorted(actual-expected)}; removed={sorted(expected-actual)}')
     result['edges']=[e for e in result['edges'] if e['a'] in reachable and e['b'] in reachable]
     result['stations'] += [dict(id=name,coords=coords) for name,coords in sorted(locations.items()) if name not in old and name in reachable]
     for original,canonical in spec['identityExceptions'].items():
@@ -80,6 +85,7 @@ def expand(root, result, sections, stations, distance, project, route):
         if canonical!=raw:
             for station in result['stations']:
                 if station['id']==canonical: station.setdefault('aliases',[]).append(raw)
+    result['source']['excludedConnections']=[e['pair'] for e in spec['expectedExclusions'] if 'pair' in e]
     result['source']['bounds']=spec['bounds']
     result['source']['scope']={}
     for edge in result['edges']:

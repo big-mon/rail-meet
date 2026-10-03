@@ -17,7 +17,7 @@ jobs:
           node-version: '24'
       - run: python3 scripts/build_data.py && python3 scripts/build_basemap.py
       - run: npm test
-      - run: python3 tests/check_geometry.py
+      - run: python3 tests/check_geometry.py && python3 tests/check_coverage.py
       - run: npm install --ignore-scripts --no-package-lock
       - run: npx playwright install --with-deps chromium
       - name: Browser checks

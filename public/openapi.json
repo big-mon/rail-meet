@@ -503,13 +503,26 @@
               "url": {
                 "type": "string",
                 "format": "uri"
+              },
+              "excludedConnections": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "description": "Intentionally omitted boundary-crossing direct connections; in-bounds routes may detour."
               }
             },
             "required": [
               "dataset",
               "license",
               "attribution",
-              "url"
+              "url",
+              "excludedConnections"
             ],
             "additionalProperties": false
           },

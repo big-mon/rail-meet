@@ -56,7 +56,7 @@ export function createApi(data,{now=Date.now}={}){
    const key=JSON.stringify(input.origins);let candidates=cache.get(key);
    if(!candidates){candidates=recommend(data,input.origins);if(cache.size>=16)cache.delete(cache.keys().next().value);cache.set(key,candidates);}
    if(!candidates.length)return error(422,'unreachable','全員が到達できる集合駅がありません。');
-   return json({origins:input.origins,unit:'km',distanceBasis:'rail_geometry_not_fare_or_time',ranking:['max','spread','total','station'],source:{dataset:data.source?.dataset||'N02-24',license:'CC BY 4.0',attribution:'国土交通省 国土数値情報をみんなの中間駅が加工',url:BASE+'sources'},candidates:candidates.map(c=>({...c,...(input.share?{shareUrl:shareUrl(input.origins,c.station)}:{})}))});
+   return json({origins:input.origins,unit:'km',distanceBasis:'rail_geometry_not_fare_or_time',ranking:['max','spread','total','station'],source:{dataset:data.source?.dataset||'N02-24',license:'CC BY 4.0',attribution:'国土交通省 国土数値情報をみんなの中間駅が加工',url:BASE+'sources',excludedConnections:data.source?.excludedConnections||[]},candidates:candidates.map(c=>({...c,...(input.share?{shareUrl:shareUrl(input.origins,c.station)}:{})}))});
   }catch{return error(503,'temporarily_unavailable','計算を完了できませんでした。');}
  };
 }

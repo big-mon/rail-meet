@@ -12,6 +12,7 @@ READMEの手順でデータを生成したうえで、変更に関係する検�
 ```sh
 npm test
 python3 tests/check_geometry.py
+python3 tests/check_coverage.py
 ```
 
 画面・操作を変更した場合は、HTTPサーバーを起動して通常画面のブラウザテストも実行する。

@@ -38,3 +38,5 @@ const aliasResponse=await aliasApi(req('stations?q='+encodeURIComponent('大塚�
 assert.equal(aliasResponse.status,200);const aliasBody=await aliasResponse.json();assert.equal(aliasBody.stations[0].id,'大塚');assert.deepEqual(aliasBody.stations[0].aliases,['大塚駅前']);
 const homonyms=await (await aliasApi(req('stations?q='+encodeURIComponent('浅草')))).json();assert(homonyms.stations.some(s=>s.id==='浅草（つくばエクスプレス）'));assert(homonyms.stations.some(s=>s.id==='浅草'));
 console.log('PASS API alias lookup and separate homonymous station IDs');
+
+const gaps=await(await createApi(data)(req('recommendations',{origins:['市役所前','千葉']}))).json();assert.deepEqual(gaps.source.excludedConnections,[['横浜','三ツ沢下町'],['市役所前','千葉']]);

@@ -37,6 +37,9 @@ function calculate(animate=false){
   candidates=recommend(data,origins);selected=0;
   if(!candidates.length)throw Error('全員が到達できる集合駅がありません。出発駅を変更してください。');
   $('status').className='';$('status').textContent=new Set(origins).size<origins.length?'同じ出発駅も、別々の参加者として比較しています。':'';
+  const gaps=(data.source?.excludedConnections||[]).filter(pair=>pair.every(s=>origins.includes(s))||candidates.some(c=>c.routes.some(r=>pair.every(s=>r.stations.includes(s)))));
+  $('coverage-note').hidden=!gaps.length;
+  $('coverage-note').textContent=gaps.length?'対象範囲の境界により '+gaps.map(p=>p.join('〜')).join('、')+' は未収録です。表示経路には迂回が含まれる場合があります。':'';
   $('results').hidden=false;
   renderCandidates();renderSelection();if(animate)playMotion();else runRailMotion();
  }catch(e){$('results').hidden=true;$('status').textContent=e.message;$('status').className='error';}

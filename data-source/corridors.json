@@ -1280,5 +1280,70 @@
     "https://www.kotsu.metro.tokyo.jp/toden/stations/otsuka-ekimae/",
     "https://www.kotsu.metro.tokyo.jp/toden/stations/minowabashi/",
     "https://www.tokyo-monorail.co.jp/guidance/"
-  ]
+  ],
+  "expectedExclusions": [
+    {
+      "operator": "西武鉄道",
+      "line": "豊島線",
+      "station": "豊島園",
+      "reason": "outside_bounds_or_projection"
+    },
+    {
+      "operator": "西武鉄道",
+      "line": "西武有楽町線",
+      "station": "小竹向原",
+      "reason": "outside_bounds_or_projection"
+    },
+    {
+      "operator": "西武鉄道",
+      "line": "西武有楽町線",
+      "station": "新桜台",
+      "reason": "outside_bounds_or_projection"
+    },
+    {
+      "operator": "横浜市",
+      "line": "3号線",
+      "pair": [
+        "横浜",
+        "三ツ沢下町"
+      ],
+      "reason": "no_verified_in_bounds_geometry"
+    },
+    {
+      "operator": "東武鉄道",
+      "line": "伊勢崎線",
+      "station": "堀切",
+      "reason": "outside_bounds_or_projection"
+    },
+    {
+      "operator": "千葉都市モノレール",
+      "line": "1号線",
+      "pair": [
+        "市役所前",
+        "千葉"
+      ],
+      "reason": "no_verified_in_bounds_geometry"
+    },
+    {
+      "operator": "千葉都市モノレール",
+      "line": "2号線",
+      "station": "千葉公園",
+      "reason": "outside_bounds_or_projection"
+    },
+    {
+      "operator": "千葉都市モノレール",
+      "line": "2号線",
+      "station": "作草部",
+      "reason": "outside_bounds_or_projection"
+    },
+    {
+      "station": "天台",
+      "reason": "disconnected_clipped_component"
+    },
+    {
+      "station": "穴川",
+      "reason": "disconnected_clipped_component"
+    }
+  ],
+  "exclusionPolicy": "The listed boundary omissions are intentional, not usable adjacency. Yokohama–Mitsuzawa-shimocho leaves the south boundary; Shiyakusho-mae–Chiba leaves the east boundary. Both stubs remain accessible via other in-bounds lines, so routes may detour. Any changed or additional omission must fail generation and be reviewed."
 }
