@@ -32,7 +32,7 @@ function calculate(animate=false){
   if(!candidates.length)throw Error('全員が到達できる集合駅がありません。出発駅を変更してください。');
   $('status').className='';$('status').textContent=new Set(origins).size<origins.length?'同じ出発駅も、別々の参加者として比較しています。':'';
   $('results').hidden=false;
-  renderCandidates();document.dispatchEvent(new Event('results-layout'));renderSelection();if(animate)playMotion();else runRailMotion();
+  renderCandidates();renderSelection();if(animate)playMotion();else runRailMotion();
  }catch(e){$('results').hidden=true;$('status').textContent=e.message;$('status').className='error';}
 }
 function renderCandidates(){
@@ -116,9 +116,8 @@ function fitRoutes(){
  const labels=[...document.querySelectorAll('.origin-callout,.destination-label')].map(e=>e.getBoundingClientRect());
  const halfWidth=Math.max(15,...labels.map(r=>r.width/2));
  const height=Math.max(20,...labels.map(r=>r.height));
- const legend=document.body.classList.contains('showtime')?$('legend').getBoundingClientRect().height:0;
  const zero=candidates[selected].routes.every(r=>r.km===0);
- const options={paddingTopLeft:[halfWidth+8,Math.max(height+21,legend+14)],paddingBottomRight:[halfWidth+8,height+22],maxZoom:zero?15:17,animate:false};
+ const options={paddingTopLeft:[halfWidth+8,height+21],paddingBottomRight:[halfWidth+8,height+22],maxZoom:zero?15:17,animate:false};
  map.fitBounds(routeBounds,options);
 }
 async function load(){

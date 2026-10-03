@@ -14,7 +14,7 @@ npm test
 python3 tests/check_geometry.py
 ```
 
-画面・操作を変更した場合は、HTTPサーバーを起動して両画面（`/`、`/showtime/`）のブラウザテストも実行する。
+画面・操作を変更した場合は、HTTPサーバーを起動して通常画面のブラウザテストも実行する。
 
 ```sh
 npm install
