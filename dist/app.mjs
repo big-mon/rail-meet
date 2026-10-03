@@ -36,7 +36,7 @@ function calculate(animate=false){
 function renderCandidates(){
  $('candidates').innerHTML=candidates.map((c,i)=>`<button type="button" class="candidate" aria-pressed="${i===selected}" data-candidate="${i}" aria-label="候補${i+1} ${esc(c.station)} 最大距離${km(c.max)}キロメートル"><div class="candidate-top"><span class="rank">距離順 ${i+1}位</span><span class="selected-label">${i===selected?'● 選択中':''}</span></div><h3>${esc(c.station)}</h3><p>最も遠い人 <b>${km(c.max)}</b> km</p><div class="spread">距離の差 ${km(c.spread)} km</div></button>`).join('');
  document.querySelectorAll('[data-candidate]').forEach(b=>b.addEventListener('click',()=>{
-  selected=Number(b.dataset.candidate);renderCandidates();renderSelection(false);document.querySelector(`[data-candidate="${selected}"]`).focus({preventScroll:true});playMotion();
+  stopMotion();selected=Number(b.dataset.candidate);renderCandidates();renderSelection(false);document.querySelector(`[data-candidate="${selected}"]`).focus({preventScroll:true});
  }));
 }
 function renderSelection(fit){
