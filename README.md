@@ -33,7 +33,7 @@ http://localhost:4173 を開きます。通常利用にnpm installやビルド�
 - 鉄道：国土交通省 [N02-24](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2024.html)、2024年12月31日時点、[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja)。[公開ミラー](https://github.com/antfu/mlit-json/tree/8e19627dc5db492ea4a3d9fd8501d5ccb862ef28)から取得。対象路線を抽出し、駅への投影・駅間分割を行っています。2025年版は使用していません。
 - 背景：国土交通省 [N03-19_190101](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v2_3.html)、2019年1月1日時点。[適用利用規約](https://nlftp.mlit.go.jp/ksj/other/agreement.html)（現行PDL1.0）に従います。[公開ミラー](https://github.com/piuccio/open-data-jp-prefectures-geojson/tree/513fb852832c99470e16b95a30ddd68bf3469dc0)での統合・簡略化後、関東周辺の都県を抽出し、輪郭を約160〜200m相当で簡略化しています。ミラーのMIT表記は `dist/vendor/prefectures-LICENSE.txt` に保持。
 - Leaflet：BSD 2-Clause。全文は `dist/vendor/leaflet-LICENSE.txt`。
-- ドッツンと王冠：独自の画像生成ヒーローPNGと王冠SVG、CC0（権利が存在する範囲）。`dist/artwork-LICENSE.txt`。
+- ドッツンと王冠：承認された金髪・巨大8bitサングラスの男性バストアップ2表情PNGと王冠SVG、CC0（権利が存在する範囲）。`dist/artwork-LICENSE.txt`。
 - 独自アプリコード：MIT（`LICENSE`）。データ・ライブラリ・素材には上記の個別条件が適用されます。
 
 詳細な原典、従前と今回の加工、免責は `dist/sources.html`、取得ハッシュは `data-source/provenance.json` にあります。タイルサーバー、CDN、有料経路APIへの実行時通信はありません。
@@ -70,3 +70,5 @@ npm run test:showtime
 ## 演出と旧リンク
 
 通常版 `/` と旧プレビュー `/showtime/` は同じ全画面トランジションを使います。旧リンクと地図レイアウトを保ち、以前のパンチ演出は停止しました。`npm run test:portal` は両画面の初回入力、口から候補への遷移、各画面サイズ・スクロール位置・割り込み・読込失敗を検証します。テスト先は `TEST_URL`（既定 http://127.0.0.1:4174）、動画記録にはPlaywrightのffmpegが必要です。
+
+キャラクターは承認原画 `assets/source/approved-hero-20261003.png` から正規imagegenで背景除去・表情別抽出した2点に統一。笑顔は通常・表彰・showtimeで共用し、大口は同じ人物の口ズームに使用します。旧全身・旧パンチ・別人SVGは配布から削除済み。

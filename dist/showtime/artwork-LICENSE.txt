@@ -1,4 +1,0 @@
-hero-send.png: Original alternate pose generated for the dots showtime prototype using OpenAI image generation, 2026-10-02, based on this project's original hero.png.
-No reference-site images, sounds, code or characters were copied.
-To the extent copyright or related rights exist and can be waived, this asset is dedicated under CC0 1.0 Universal: https://creativecommons.org/publicdomain/zero/1.0/legalcode
-Provided without warranty. Main hero and crown terms: ../artwork-LICENSE.txt. Railway and library terms: ../sources.html.

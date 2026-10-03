@@ -37,7 +37,7 @@ const assert=require('node:assert/strict');const fs=require('node:fs');
  assert.equal(await page.locator('#basemap').count(),0);assert.equal(await page.locator('.map-footer input').count(),0);
  assert.equal(await page.locator('.leaflet-control-attribution').count(),0);
  assert.deepEqual(await page.locator('.credits a').evaluateAll(es=>es.map(e=>e.getAttribute('href'))),['sources.html#rail-data','sources.html#boundary-data','sources.html#leaflet','sources.html#artwork']);
- const licenseResponse=await page.request.get('http://127.0.0.1:4173/vendor/leaflet-LICENSE.txt');assert(licenseResponse.ok());const license=await licenseResponse.text();assert.match(license,/Copyright/);assert.match(license,/AS IS/);
+ const licenseResponse=await page.request.get((process.env.TEST_URL||'http://127.0.0.1:4173')+'/vendor/leaflet-LICENSE.txt');assert(licenseResponse.ok());const license=await licenseResponse.text();assert.match(license,/Copyright/);assert.match(license,/AS IS/);
  await page.waitForTimeout(300);
  const mapRect=await page.locator('#map').boundingBox();
  for(const name of ['千葉','横浜','渋谷']){const rect=await page.locator('.origin-callout').filter({hasText:name}).boundingBox();assert(rect&&rect.x>=mapRect.x&&rect.y>=mapRect.y&&rect.x+rect.width<=mapRect.x+mapRect.width&&rect.y+rect.height<=mapRect.y+mapRect.height,`Origin bubble must fit: ${name}`);}

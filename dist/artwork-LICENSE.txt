@@ -1,9 +1,5 @@
-dots original artwork: hero.png (集合応援団 ドッツン) and crown.svg.
-Hero: generated specifically for this project with OpenAI image generation, 2026-10-02.
-Crown: original pixel SVG. No third-party photo, recording or existing character asset was used.
-To the extent any copyright or related rights exist and can be waived, these assets are dedicated under CC0 1.0 Universal:
-https://creativecommons.org/publicdomain/zero/1.0/legalcode
-No representation is made that generated imagery is eligible for copyright. Provided without warranty.
-Railway/boundary datasets and Leaflet retain their separate licenses in sources.html.
-
-portal-face.mjs: original comic face SVG, CC0 (to the extent rights exist).
+dots original artwork: hero-smile.png, hero-mouth.png, crown.svg.
+The two busts are transparent imagegen extractions of the user-approved character sheet, 2026-10-03: blond hair, oversized black 8-bit sunglasses, angular male face, blue/gold bust and red cape.
+Source original preserved in assets/source/approved-hero-20261003.png. No independent SVG face is used.
+CC0 1.0, to the extent rights exist. Provided without warranty.
+https://creativecommons.org/publicdomain/zero/1.0/
