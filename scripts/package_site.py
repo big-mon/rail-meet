@@ -17,7 +17,10 @@ files = sorted(p for p in (root / 'public').rglob('*') if p.is_file())
 manifest = root / '.openai/hosting.json'
 if manifest.is_file():
     files.append(manifest)
+# Sites accepts out/ in its archive; the hand-written source stays in public/.
+prefix = pathlib.Path('out' if manifest.is_file() else 'public')
 with tarfile.open(archive, 'w:gz') as output:
     for path in files:
-        output.add(path, arcname=path.relative_to(root), recursive=False)
+        name = prefix / path.relative_to(root / 'public') if path.is_relative_to(root / 'public') else path.relative_to(root)
+        output.add(path, arcname=name, recursive=False)
 print(f'Packaged {len(files)} files: {archive}')

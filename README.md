@@ -20,7 +20,7 @@ http://localhost:4173 を開きます。初回取得後は上のPythonコマン�
 python3 scripts/package_site.py /tmp/rail-meet-site.tar.gz
 ```
 
-アーカイブには `public/` が入り、Sites内部checkoutに配信設定がある場合だけ `.openai/hosting.json` も入ります。公開repoにはSites設定や検証画像を含めません。PNGは確定素材として保持し、データ生成コマンドでは再生成しません。
+通常のアーカイブには `public/` が入ります。Sites内部checkoutに配信設定がある場合だけ、サービスの制約に合わせてアーカイブ内を `out/` とし、`.openai/hosting.json` を添付します。正本は常に `public/` で、出力用ディレクトリはrepoに作りません。公開repoにはSites設定や検証画像を含めません。PNGは確定素材として保持し、データ生成コマンドでは再生成しません。
 
 ## 距離と候補
 
