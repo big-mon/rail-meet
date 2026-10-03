@@ -57,8 +57,6 @@ npm test
 npm install
 npx playwright install chromium
 npm run test:browser
-npm run test:first-search
-npm run test:showtime
 ```
 
 既存Chromiumを使う場合は `CHROMIUM_PATH` に実行ファイルを指定できます。テスト出力は `evidence/` に作成します。最短距離の全5,776駅対照合、原典形状、同駅・重複・到達不能、候補更新、モバイル幅、読込失敗、表彰、連打、キーボード、reduced-motion、スクロール保持を検証します。
@@ -71,7 +69,7 @@ npm run test:showtime
 
 ## 演出と旧リンク
 
-通常版 `/` と旧プレビュー `/showtime/` は同じ全画面トランジションを使います。旧リンクと地図レイアウトを保ち、以前のパンチ演出は停止しました。`npm run test:portal` は両画面の初回入力、口から候補への遷移、各画面サイズ・スクロール位置・割り込み・読込失敗を検証します。テスト先は `TEST_URL`（既定 http://127.0.0.1:4174）、動画記録にはPlaywrightのffmpegが必要です。
+通常版 `/` と旧プレビュー `/showtime/` は同じ全画面トランジションを使います。旧リンクと地図レイアウトを保ち、以前のパンチ演出は停止しました。`npm run test:browser` は両画面の初回入力、口から候補への遷移、各画面サイズ・スクロール位置・割り込み・読込失敗を検証します。テスト先は `TEST_URL`（既定 http://127.0.0.1:4173）。全ブラウザテストは上記の1コマンドで実行します。
 
 キャラクターは承認原画 `assets/source/approved-hero-20261003.png` から正規imagegenで背景除去・表情別抽出した2点に統一。笑顔は通常・表彰・showtimeで共用し、大口は同じ人物の口ズームに使用します。旧全身・旧パンチ・別人SVGは配布から削除済み。
 

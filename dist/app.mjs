@@ -62,9 +62,8 @@ function initMap(){
  map.zoomControl._zoomInButton.setAttribute('aria-label','地図を拡大');map.zoomControl._zoomOutButton.setAttribute('aria-label','地図を縮小');
  L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
  overlay=L.layerGroup().addTo(map);motionLayer=L.layerGroup().addTo(map);
- const fitAll=fitRoutes;
  new IntersectionObserver(entries=>{mapOnScreen=entries[0].isIntersecting;syncRailMotion();}).observe($('map'));
- let resizeTimer;new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{map.invalidateSize();fitAll();},100);}).observe($('map'));
+ let resizeTimer;new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{map.invalidateSize();fitRoutes();},100);}).observe($('map'));
  map.createPane('context');map.getPane('context').style.zIndex=200;map.createPane('contextLabels');map.getPane('contextLabels').style.zIndex=250;
  loadBasemap();
 }
@@ -153,9 +152,8 @@ load();
 function stopMotion(){
  loopWanted=false;cancelPortal();
  cancelAnimationFrame(motionFrame);motionFrame=undefined;
- feedbackAnimations.forEach(a=>a.cancel());feedbackAnimations.clear();delete $('celebration').dataset.stage;
- motionLayer?.clearLayers();$('meeting')?.classList.remove('arrived');
- $('celebration').classList.remove('cheering','celebrated');
+ feedbackAnimations.forEach(a=>a.cancel());feedbackAnimations.clear();
+ motionLayer?.clearLayers();
 }
 function playMotion(){
  stopMotion();
