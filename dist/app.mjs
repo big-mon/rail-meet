@@ -12,7 +12,9 @@ let hasSearched=false;
 const basemapReady=fetch('./basemap.json',{signal:AbortSignal.timeout(10000)}).then(r=>{if(!r.ok)throw Error('basemap');return r.json();}).catch(()=>null);
 const feedbackAnimations=new Set();
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
-reducedMotion.addEventListener('change',stopMotion);
+let loopWanted=false,mapOnScreen=false;
+reducedMotion.addEventListener('change',()=>{cancelPortal();loopWanted=hasSearched&&!$('results').hidden;syncRailMotion();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelPortal();loopWanted=hasSearched&&!$('results').hidden;}syncRailMotion();});
 function renderInputs(){
  $('origins').innerHTML=origins.map((value,i)=>`<div class="origin-field"><label for="origin-${i}"><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>参加者 ${letters[i]}</label><div class="select-row"><select id="origin-${i}" ${data?'':'disabled'} aria-label="参加者 ${letters[i]} の出発駅">${(data?.stations||origins.map(id=>({id}))).map(s=>`<option${s.id===value?' selected':''}>${esc(s.id)}</option>`).join('')}</select>${origins.length>2?`<button type="button" class="remove" data-remove="${i}" aria-label="参加者 ${letters[i]} を削除">×</button>`:''}</div></div>`).join('');
  origins.forEach((_,i)=>$(`origin-${i}`).addEventListener('change',e=>{origins[i]=e.target.value;updateOrigins();joinPerson(i);}));
@@ -30,27 +32,27 @@ function calculate(animate=false){
   if(!candidates.length)throw Error('全員が到達できる集合駅がありません。出発駅を変更してください。');
   $('status').className='';$('status').textContent=new Set(origins).size<origins.length?'同じ出発駅も、別々の参加者として比較しています。':'';
   $('results').hidden=false;
-  renderCandidates();document.dispatchEvent(new Event('results-layout'));renderSelection(true);if(animate)playMotion();
+  renderCandidates();document.dispatchEvent(new Event('results-layout'));renderSelection(true);if(animate)playMotion();else runRailMotion();
  }catch(e){$('results').hidden=true;$('status').textContent=e.message;$('status').className='error';}
 }
 function renderCandidates(){
  $('candidates').innerHTML=candidates.map((c,i)=>`<button type="button" class="candidate" aria-pressed="${i===selected}" data-candidate="${i}" aria-label="候補${i+1} ${esc(c.station)} 最大距離${km(c.max)}キロメートル"><div class="candidate-top"><span class="rank">距離順 ${i+1}位</span><span class="selected-label">${i===selected?'● 選択中':''}</span></div><h3>${esc(c.station)}</h3><p>最も遠い人 <b>${km(c.max)}</b> km</p><div class="spread">距離の差 ${km(c.spread)} km</div></button>`).join('');
  document.querySelectorAll('[data-candidate]').forEach(b=>b.addEventListener('click',()=>{
-  stopMotion();selected=Number(b.dataset.candidate);renderCandidates();renderSelection(false);document.querySelector(`[data-candidate="${selected}"]`).focus({preventScroll:true});
+  stopMotion();selected=Number(b.dataset.candidate);renderCandidates();renderSelection(false);document.querySelector(`[data-candidate="${selected}"]`).focus({preventScroll:true});runRailMotion();
  }));
 }
 function renderSelection(fit){
  const c=candidates[selected],reward=expeditionReward(c.routes);
  renderReward(reward);
  $('meeting-name').textContent=c.station;
- $('map-title').textContent=`集合はここ！ ${c.station}`;$('details-title').textContent=`${c.station}で集合`;
+ $('details-title').textContent=`${c.station}で集合`;
  $('summary').innerHTML=`<div class="metric"><span class="small">最も遠い人</span><b>${km(c.max)} <small>km</small></b></div><p class="small">最大と最小の差 ${km(c.spread)} km · 合計 ${km(c.total)} km</p>`;
  $('route-details').innerHTML=c.routes.map((r,i)=>{
   const lines=[...new Set(r.steps.map(s=>s.line))];
   return `<article class="route-card" style="--person:${colors[i]}"><div class="route-row"><span class="person-dot">${letters[i]}</span><span>${esc(origins[i])}</span><strong>${km(r.km)} <small>km</small></strong></div>${reward.winners.includes(i)?'<p class="route-award"><img src="crown.svg" alt="" width="20" height="18">遠征の勇者</p>':''}<div class="bar"><span style="width:${c.max?r.km/c.max*100:0}%"></span></div>${r.steps.length?`<details><summary>${lines.map(esc).join(' → ')}<br>経由する駅を見る</summary><p class="stops">${r.stations.map(esc).join(' → ')}</p></details>`:'<p class="zero">集合駅と同じです。移動はありません。</p>'}</article>`;
  }).join('');
  $('legend').innerHTML=origins.map((o,i)=>`<button type="button" data-person="${i}" aria-pressed="${visible[i]}" aria-label="参加者 ${letters[i]} ${esc(o)} の経路表示"><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>${esc(o)}<b>${km(c.routes[i].km)} km</b></button>`).join('');
- document.querySelectorAll('[data-person]').forEach(b=>b.addEventListener('click',()=>{stopMotion();const i=Number(b.dataset.person);visible[i]=!visible[i];b.setAttribute('aria-pressed',visible[i]);drawRoutes(false);}));
+ document.querySelectorAll('[data-person]').forEach(b=>b.addEventListener('click',()=>{stopMotion();const i=Number(b.dataset.person);visible[i]=!visible[i];b.setAttribute('aria-pressed',visible[i]);drawRoutes(false);runRailMotion();}));
  if(!map)initMap();map.invalidateSize({pan:false});drawRoutes(fit);
 }
 function initMap(){
@@ -60,7 +62,7 @@ function initMap(){
  L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
  overlay=L.layerGroup().addTo(map);motionLayer=L.layerGroup().addTo(map);
  const fitAll=()=>{if(routeBounds)map.fitBounds(routeBounds,{paddingTopLeft:[80,90],paddingBottomRight:[90,50],maxZoom:13,animate:false});};
- $('fit').addEventListener('click',fitAll);
+ new IntersectionObserver(entries=>{mapOnScreen=entries[0].isIntersecting;syncRailMotion();}).observe($('map'));
  let resizeTimer;new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{map.invalidateSize();fitAll();},100);}).observe($('map'));
  map.createPane('context');map.getPane('context').style.zIndex=200;map.createPane('contextLabels');map.getPane('contextLabels').style.zIndex=250;
  loadBasemap();
@@ -134,7 +136,7 @@ $('find').addEventListener('click',()=>{
 load();
 
 function stopMotion(){
- cancelPortal();
+ loopWanted=false;cancelPortal();
  cancelAnimationFrame(motionFrame);motionFrame=undefined;
  feedbackAnimations.forEach(a=>a.cancel());feedbackAnimations.clear();delete $('celebration').dataset.stage;
  motionLayer?.clearLayers();$('meeting')?.classList.remove('arrived');
@@ -144,33 +146,18 @@ function playMotion(){
  stopMotion();
  showPortal(candidates,selected,runRailMotion,reducedMotion.matches);
 }
-function runRailMotion(){
- if(reducedMotion.matches){celebrate();return;}
- $('celebration').classList.add('cheering');$('celebration').dataset.stage='send';
- const c=candidates[selected],paths=c.routes.map(motionPath);
+function runRailMotion(){loopWanted=true;syncRailMotion();}
+function syncRailMotion(){
+ cancelAnimationFrame(motionFrame);motionFrame=undefined;motionLayer?.clearLayers();
+ if(!loopWanted||!mapOnScreen||document.hidden||reducedMotion.matches||!motionLayer||$('results').hidden)return;
+ const paths=candidates[selected].routes.map(motionPath);
  const pieces=paths.map((path,i)=>visible[i]&&path.total>0?L.marker(ll(pointAt(path,0)),{interactive:false,keyboard:false,zIndexOffset:2000,icon:L.divIcon({className:'travel-marker',html:`<span class="travel-piece" style="--person:${colors[i]};--slot:${i-(origins.length-1)/2}">${letters[i]}</span>`,iconSize:[30,30],iconAnchor:[15,15]})}).addTo(motionLayer):null);
- const travelDuration=pieces.some(Boolean)?1250:0,start=performance.now();let merged=false,crowned=false;
+ if(!pieces.some(Boolean))return;
+ const start=performance.now(),duration=2400,pause=650;
  function frame(now){
-  const elapsed=now-start,progress=travelDuration?Math.min(1,elapsed/travelDuration):1;
-  if(!merged){
-   if(elapsed>=420){$('celebration').dataset.stage='run';}
-   pieces.forEach((piece,i)=>{if(piece)piece.setLatLng(ll(pointAt(paths[i],progress)));});
-  }
-  if(progress===1&&!merged){
-   merged=true;motionLayer.clearLayers();$('meeting').classList.add('arrived');$('celebration').dataset.stage='merge';
-   const point=ll(data.stations.find(s=>s.id===c.station).coords);
-   const badges=origins.map((_,i)=>`<span class="arrival-piece" style="--person:${colors[i]};--join-x:${(i-(origins.length-1)/2)*30}px">${letters[i]}</span>`).join('');
-   L.marker(point,{interactive:false,keyboard:false,zIndexOffset:2200,icon:L.divIcon({className:'arrival-marker',html:`<div class="arrival-burst" aria-hidden="true"><span class="arrival-ring"></span>${badges}</div>`,iconSize:[0,0],iconAnchor:[0,0]})}).addTo(motionLayer);
-   document.querySelectorAll('.arrival-piece').forEach(e=>animateFeedback(e,[{transform:'translate(calc(var(--join-x)*2),-40px) scale(.7)',opacity:0},{transform:'translate(var(--join-x),-35px) scale(1.2)',opacity:1,offset:.55},{transform:'translate(var(--join-x),-35px) scale(1)',opacity:1}],{duration:300}));
-   animateFeedback(document.querySelector('.arrival-ring'),[{transform:'translate(-50%,-50%) scale(.3)',opacity:0},{transform:'translate(-50%,-50%) scale(1)',opacity:.8,offset:.5},{transform:'translate(-50%,-50%) scale(1.25)',opacity:0}],{duration:500});
-
-  }
-  if(merged&&!crowned&&elapsed>=travelDuration+250){
-   crowned=true;$('celebration').dataset.stage='award';celebrate();
-   document.querySelectorAll('.personal-crown').forEach(e=>animateFeedback(e,[{transform:'translateY(-30px) rotate(-15deg) scale(1.35)',opacity:0},{transform:'translateY(2px) rotate(4deg) scale(1)',opacity:1,offset:.65},{transform:'translateY(0) rotate(0)',opacity:1}],{duration:370}));
-  }
-  if(elapsed<travelDuration+650)motionFrame=requestAnimationFrame(frame);
-  else{motionLayer.clearLayers();motionFrame=undefined;$('celebration').dataset.stage='settled';}
+  const elapsed=(now-start)%(duration+pause),progress=Math.min(1,elapsed/duration);
+  pieces.forEach((piece,i)=>{if(piece)piece.setLatLng(ll(pointAt(paths[i],progress)));});
+  motionFrame=requestAnimationFrame(frame);
  }
  motionFrame=requestAnimationFrame(frame);
 }
@@ -188,8 +175,4 @@ function joinPerson(i){
 function renderReward(reward){
  const {max,winners}=reward;
  $('reward').innerHTML=winners.length?`<div class="reward-heading"><img class="reward-crown" src="crown.svg" alt="王冠" width="32" height="28"><strong>遠征の勇者</strong><span class="reward-people">${winners.map(i=>`<span class="winner-token"><img class="personal-crown" src="crown.svg" alt="" width="23" height="19"><span class="person-dot" data-winner="${letters[i]}" style="--person:${colors[i]}">${letters[i]}</span></span>`).join('')}</span></div><p class="reward-message">${[...new Set(winners.map(i=>origins[i]))].map(esc).join('・')}からの遠征プランに、拍手！</p><p class="reward-rule">最長 ${km(max)} km${winners.length>1?' · みんなが勇者！':''}</p>`:'<strong class="nearby-party">ご近所パーティー！</strong><p class="reward-message">みんな同じ駅。遠征なしで集まれるね！</p>';
-}
-function celebrate(){
- $('meeting').classList.add('arrived');$('celebration').classList.remove('cheering');$('celebration').classList.add('celebrated');
-
 }

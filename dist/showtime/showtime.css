@@ -9,3 +9,7 @@
 @media(min-width:761px){.showtime .inputs{grid-template-columns:minmax(0,1fr) 360px}}
 
 .showtime .alternatives{margin-top:18px}.showtime .alternatives .results-heading{display:flex}.showtime .alternatives #candidates{margin-bottom:0}
+
+.showtime #map{top:6px;height:calc(100% - 206px)}.showtime #legend{top:8px;bottom:auto}.showtime .show-rays{inset:0}@media(max-width:760px){.showtime #map{top:6px;height:calc(var(--stage-height,520px) - 230px)}}
+
+.showtime #legend{pointer-events:none}.showtime #legend button{pointer-events:auto}
