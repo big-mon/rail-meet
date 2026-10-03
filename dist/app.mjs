@@ -6,23 +6,30 @@ const $=id=>document.getElementById(id), colors=['#2169be','#bf4c1d','#8a45b5','
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ll=p=>[p[1],p[0]];
 let data,origins=['千葉','横浜'],candidates=[],selected=0,visible=[],map,overlay,routeBounds,motionLayer,motionFrame;
+let hasSearched=false;
+// Start both data requests together; background failure never blocks routing.
+const basemapReady=fetch('./basemap.json',{signal:AbortSignal.timeout(10000)}).then(r=>{if(!r.ok)throw Error('basemap');return r.json();}).catch(()=>null);
 const feedbackAnimations=new Set();
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 reducedMotion.addEventListener('change',stopMotion);
 function renderInputs(){
- $('origins').innerHTML=origins.map((value,i)=>`<div class="origin-field"><label for="origin-${i}"><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>参加者 ${letters[i]}</label><div class="select-row"><select id="origin-${i}" aria-label="参加者 ${letters[i]} の出発駅">${data.stations.map(s=>`<option${s.id===value?' selected':''}>${esc(s.id)}</option>`).join('')}</select>${origins.length>2?`<button type="button" class="remove" data-remove="${i}" aria-label="参加者 ${letters[i]} を削除">×</button>`:''}</div></div>`).join('');
- origins.forEach((_,i)=>$(`origin-${i}`).addEventListener('change',e=>{origins[i]=e.target.value;calculate();joinPerson(i);}));
- document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{origins.splice(Number(b.dataset.remove),1);renderInputs();calculate();$('add').focus({preventScroll:true});}));
- $('add').disabled=origins.length>=4;
+ $('origins').innerHTML=origins.map((value,i)=>`<div class="origin-field"><label for="origin-${i}"><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>参加者 ${letters[i]}</label><div class="select-row"><select id="origin-${i}" ${data?'':'disabled'} aria-label="参加者 ${letters[i]} の出発駅">${(data?.stations||origins.map(id=>({id}))).map(s=>`<option${s.id===value?' selected':''}>${esc(s.id)}</option>`).join('')}</select>${origins.length>2?`<button type="button" class="remove" data-remove="${i}" aria-label="参加者 ${letters[i]} を削除">×</button>`:''}</div></div>`).join('');
+ origins.forEach((_,i)=>$(`origin-${i}`).addEventListener('change',e=>{origins[i]=e.target.value;updateOrigins();joinPerson(i);}));
+ document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{origins.splice(Number(b.dataset.remove),1);renderInputs();updateOrigins();$('add').focus({preventScroll:true});}));
+ $('add').disabled=!data||origins.length>=4;
+}
+function updateOrigins(){
+ if(hasSearched)calculate();else stopMotion();
 }
 function calculate(animate=false){
+ if(!data||!window.L)return;
  stopMotion();
  try{
   candidates=recommend(data,origins);selected=0;visible=origins.map(()=>true);
   if(!candidates.length)throw Error('全員が到達できる集合駅がありません。出発駅を変更してください。');
   $('status').className='';$('status').textContent=new Set(origins).size<origins.length?'同じ出発駅も、別々の参加者として比較しています。':'';
   $('results').hidden=false;
-  renderCandidates();renderSelection(true);if(animate)playMotion();
+  renderCandidates();document.dispatchEvent(new Event('results-layout'));renderSelection(true);if(animate)playMotion();
  }catch(e){$('results').hidden=true;$('status').textContent=e.message;$('status').className='error';}
 }
 function renderCandidates(){
@@ -43,7 +50,7 @@ function renderSelection(fit){
  }).join('');
  $('legend').innerHTML=origins.map((o,i)=>`<button type="button" data-person="${i}" aria-pressed="${visible[i]}" aria-label="参加者 ${letters[i]} ${esc(o)} の経路表示"><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>${esc(o)}<b>${km(c.routes[i].km)} km</b></button>`).join('');
  document.querySelectorAll('[data-person]').forEach(b=>b.addEventListener('click',()=>{const i=Number(b.dataset.person);visible[i]=!visible[i];b.setAttribute('aria-pressed',visible[i]);drawRoutes(false);}));
- if(!map)initMap();map.invalidateSize();drawRoutes(fit);
+ if(!map)initMap();map.invalidateSize({pan:false});drawRoutes(fit);
 }
 function initMap(){
  map=L.map('map',{scrollWheelZoom:false,zoomAnimation:false,minZoom:8,maxZoom:15,maxBounds:[[35.15,139.25],[36.1,140.45]],maxBoundsViscosity:.8,zoomControl:true,attributionControl:false});
@@ -61,9 +68,8 @@ async function loadBasemap(){
  let layer;
  $('background-status').parentElement.hidden=false;$('background-status').textContent='都県境を読み込んでいます…';
  try{
-  const r=await fetch('./basemap.json',{signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('basemap');
-  const basemapData=await r.json();
-  if(basemapData.type!=='FeatureCollection'||!Array.isArray(basemapData.features)||!basemapData.features.length||basemapData.features.some(f=>f.geometry?.type!=='MultiPolygon'))throw Error('basemap');
+  const basemapData=await basemapReady;
+  if(basemapData?.type!=='FeatureCollection'||!Array.isArray(basemapData.features)||!basemapData.features.length||basemapData.features.some(f=>f.geometry?.type!=='MultiPolygon'))throw Error('basemap');
   layer=L.layerGroup().addTo(map);
   const fills={'東京都':'#f2f2e9','神奈川県':'#eff1e6','千葉県':'#f0f2e8','埼玉県':'#f3f1e8'};
   L.geoJSON(basemapData,{pane:'context',interactive:false,style:f=>({fillColor:fills[f.properties.name]||'#f0f1e9',fillOpacity:1,color:'#bdc7bd',weight:1.2,smoothFactor:1})}).addTo(layer);
@@ -108,18 +114,20 @@ function drawRoutes(fit){
  $('map').setAttribute('aria-label',`${origins.join('・')}から${c.station}までの鉄道経路。共通区間は色の縞で表示。`);
 }
 async function load(){
- $('find').disabled=true;$('status').className='';$('status').textContent='鉄道データを読み込んでいます…';$('results').hidden=true;$('add').disabled=true;
+ data=undefined;renderInputs();$('find').disabled=true;$('status').className='';$('status').textContent='鉄道データを読み込んでいます…';$('results').hidden=true;$('add').disabled=true;
  try{
   const response=await fetch('./network.json',{signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error('load');data=validate(await response.json());
-  if(!window.L)throw Error('map');renderInputs();calculate();$('find').disabled=false;
+  if(!window.L)throw Error('map');renderInputs();$('status').textContent='';$('find').disabled=false;
  }catch{
   $('status').className='error';$('status').innerHTML='データを読み込めませんでした。通信状態を確認して再試行してください。<button class="retry" type="button" id="retry">再読み込み</button>';
   $('retry').addEventListener('click',()=>window.L?load():location.reload());
  }
 }
-$('add').addEventListener('click',()=>{if(origins.length>=4)return;origins.push('東京');renderInputs();calculate();$(`origin-${origins.length-1}`).focus({preventScroll:true});joinPerson(origins.length-1);});
+$('add').addEventListener('click',()=>{if(origins.length>=4)return;origins.push('東京');renderInputs();updateOrigins();$(`origin-${origins.length-1}`).focus({preventScroll:true});joinPerson(origins.length-1);});
 $('find').addEventListener('click',()=>{
- calculate(true);
+ if(!data||$('find').disabled)return;
+ const first=!hasSearched;hasSearched=true;calculate(true);
+ if(first&&!$('results').hidden)animateFeedback($('results'),[{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'translateY(0)'}],{duration:260});
  animateFeedback($('find'),[{transform:'scale(1)'},{transform:'scale(.98)'},{transform:'scale(1)'}],{duration:220});
 });
 load();

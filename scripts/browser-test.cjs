@@ -1,3 +1,4 @@
+const {openResults}=require('./browser-helpers.cjs');
 const path=require('node:path');process.chdir(path.resolve(__dirname,'..'));require('node:fs').mkdirSync('evidence',{recursive:true});
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');const fs=require('node:fs');
@@ -6,7 +7,7 @@ const assert=require('node:assert/strict');const fs=require('node:fs');
  const results=[];const requests=[];const page=await browser.newPage({viewport:{width:1360,height:1080}});const errors=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));
  // All rendering data is local; no external map requests are permitted.
- await page.goto('http://127.0.0.1:4173');await page.waitForSelector('.candidate');
+ await page.goto('http://127.0.0.1:4173');await openResults(page);await page.waitForSelector('.candidate');
  assert.equal(await page.locator('.candidate').count(),3);assert.match(await page.locator('#map-title').textContent(),/錦糸町/);
  await page.waitForFunction(()=>document.querySelector('#background-status').textContent.includes('概略図'));
  assert(await page.locator('.person-route').count()>10);results.push('Initial 千葉 / 横浜; three candidates; vector prefecture/coast background');
@@ -63,16 +64,16 @@ const assert=require('node:assert/strict');const fs=require('node:fs');
  await page.locator('footer').scrollIntoViewIfNeeded();
  for(const link of await page.locator('.credits a, footer a').all()){const b=await link.boundingBox();assert(b.height>=44&&b.x>=0&&b.x+b.width<=320);assert(await link.evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=13));}
  await page.locator('#credits').screenshot({path:'evidence/mobile-footer.png'});
- await page.locator('.credits a').first().click();assert(page.url().endsWith('#rail-data'));assert(await page.locator('#rail-data').isVisible());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.goBack();await page.waitForSelector('.candidate');
- await page.evaluate(()=>{localStorage.setItem('basemap','false');localStorage.setItem('showBasemap','false');});await page.reload();await page.waitForFunction(()=>document.querySelector('#background-status').textContent.includes('概略図'));assert.equal(await page.locator('#basemap').count(),0);
+ await page.locator('.credits a').first().click();assert(page.url().endsWith('#rail-data'));assert(await page.locator('#rail-data').isVisible());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.goBack();await openResults(page);await page.waitForSelector('.candidate');
+ await page.evaluate(()=>{localStorage.setItem('basemap','false');localStorage.setItem('showBasemap','false');});await page.reload();await openResults(page);await page.waitForFunction(()=>document.querySelector('#background-status').textContent.includes('概略図'));assert.equal(await page.locator('#basemap').count(),0);
  assert.equal(await page.locator('.origin-badge').count(),2);results.push('Always-on background ignores old off values after reload; 390px and 320px layouts');
- const backgroundFailure=await browser.newPage();await backgroundFailure.route('**/basemap.json',r=>r.fulfill({status:503,body:'unavailable'}));await backgroundFailure.goto('http://127.0.0.1:4173');await backgroundFailure.waitForSelector('.candidate');await backgroundFailure.waitForFunction(()=>document.querySelector('#background-status').textContent.includes('取得できません'));assert(await backgroundFailure.locator('.person-route').count()>10);await backgroundFailure.screenshot({path:'evidence/basemap-failure.png',fullPage:true});
- await backgroundFailure.unroute('**/basemap.json');await backgroundFailure.reload();await backgroundFailure.waitForFunction(()=>[...document.querySelectorAll('.leaflet-context-pane path')].some(e=>e.getAttribute('d').length>20));results.push('Basemap load failure preserves rail routes and supports retry');
+ const backgroundFailure=await browser.newPage();await backgroundFailure.route('**/basemap.json',r=>r.fulfill({status:503,body:'unavailable'}));await backgroundFailure.goto('http://127.0.0.1:4173');await openResults(backgroundFailure);await backgroundFailure.waitForSelector('.candidate');await backgroundFailure.waitForFunction(()=>document.querySelector('#background-status').textContent.includes('取得できません'));assert(await backgroundFailure.locator('.person-route').count()>10);await backgroundFailure.screenshot({path:'evidence/basemap-failure.png',fullPage:true});
+ await backgroundFailure.unroute('**/basemap.json');await backgroundFailure.reload();await openResults(backgroundFailure);await backgroundFailure.waitForFunction(()=>[...document.querySelectorAll('.leaflet-context-pane path')].some(e=>e.getAttribute('d').length>20));results.push('Basemap load failure preserves rail routes and supports retry');
  const failure=await browser.newPage();await failure.route('**/network.json',r=>r.fulfill({status:503,body:'unavailable'}));await failure.goto('http://127.0.0.1:4173');await failure.waitForSelector('#retry');assert(await failure.locator('#results').isHidden());assert(await failure.locator('#add').isDisabled());
  await failure.screenshot({path:'evidence/load-failure.png'});
- await failure.unroute('**/network.json');await failure.locator('#retry').click();await failure.waitForSelector('.candidate');results.push('Data load failure, no stale results, and successful retry');
+ await failure.unroute('**/network.json');await failure.locator('#retry').click();await openResults(failure);await failure.waitForSelector('.candidate');results.push('Data load failure, no stale results, and successful retry');
  // Unreachable UI with a valid but isolated fixture (never shipped).
  const data=JSON.parse(fs.readFileSync('dist/network.json'));
- data.stations.push({id:'孤立駅',coords:[140,35]});await failure.route('**/network.json',r=>r.fulfill({json:data}));await failure.reload();await failure.waitForSelector('.candidate');await failure.locator('#origin-0').selectOption('孤立駅');assert(await failure.locator('#results').isHidden());assert.match(await failure.locator('#status').textContent(),/到達/);results.push('Unreachable UI gives actionable error');
+ data.stations.push({id:'孤立駅',coords:[140,35]});await failure.route('**/network.json',r=>r.fulfill({json:data}));await failure.reload();await openResults(failure);await failure.waitForSelector('.candidate');await failure.locator('#origin-0').selectOption('孤立駅');assert(await failure.locator('#results').isHidden());assert.match(await failure.locator('#status').textContent(),/到達/);results.push('Unreachable UI gives actionable error');
  assert.deepEqual(errors,[]);assert(requests.every(u=>u.startsWith('http://127.0.0.1:4173/')));results.push('Zero external requests, zero raster tile images, zero JavaScript errors');assert.equal(await page.locator('.leaflet-tile').count(),0);fs.writeFileSync('evidence/browser-tests.json',JSON.stringify({result:'PASS',checks:results,pageErrors:errors,browser:await browser.version(),externalRequests:requests.filter(u=>!u.startsWith('http://127.0.0.1:4173/'))},null,2));console.log(results.join('\n'));await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});
