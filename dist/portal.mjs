@@ -1,11 +1,10 @@
 let overlay,timers=[],animations=[];
 export function cancelPortal(){timers.forEach(clearTimeout);timers=[];animations.forEach(a=>a.cancel());animations=[];overlay?.remove();overlay=undefined;}
-export function showPortal(candidates,selected,onReveal,reduced){
+export function showPortal(station,onReveal,reduced){
  cancelPortal();
  const root=document.createElement('div');overlay=root;root.className='mouth-portal';root.dataset.phase=reduced?'result':'face';root.setAttribute('aria-label','集合駅の発表');
- root.innerHTML='<div class="portal-camera"><div class="portal-face"><img class="portal-smile" src="hero-smile.png" alt=""><img class="portal-mouth" src="hero-mouth.png" alt=""></div></div><div class="portal-caption" aria-hidden="true">集合場所は…！</div><div class="portal-result" role="status"><small>集合はここ！</small><strong></strong><div class="portal-options"></div></div><button type="button" class="portal-skip" aria-label="演出を閉じる">閉じる ×</button>';
- root.querySelector('.portal-result strong').textContent=candidates[selected].station+'駅';
- candidates.forEach((c,i)=>{const item=document.createElement('span');item.className=i===selected?'chosen':'';item.textContent=`${i+1}. ${c.station}  ${c.max.toFixed(1)} km`;root.querySelector('.portal-options').append(item);});
+ root.innerHTML='<div class="portal-camera"><div class="portal-face"><img class="portal-smile" src="hero-smile.png" alt=""><img class="portal-mouth" src="hero-mouth.png" alt=""></div></div><div class="portal-caption" aria-hidden="true">集合場所は…！</div><div class="portal-result" role="status"><small>集合はここ！</small><strong></strong></div><button type="button" class="portal-skip" aria-label="演出を閉じる">閉じる ×</button>';
+ root.querySelector('.portal-result strong').textContent=station+'駅';
  document.body.append(root);
  let revealed=false,started=false;const startRoutes=()=>{if(!started){started=true;onReveal();}};
  const reveal=()=>{if(revealed)return;revealed=true;root.dataset.phase='result';};

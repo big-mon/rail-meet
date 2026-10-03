@@ -157,7 +157,7 @@ function stopMotion(){
 }
 function playMotion(){
  stopMotion();
- showPortal(candidates,selected,runRailMotion,reducedMotion.matches);
+ showPortal(candidates[0].station,runRailMotion,reducedMotion.matches);
 }
 function runRailMotion(){loopWanted=true;syncRailMotion();}
 function syncRailMotion(){
