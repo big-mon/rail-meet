@@ -15,3 +15,5 @@
 .showtime #legend{pointer-events:none}.showtime #legend button{pointer-events:auto}
 
 .showtime .map-panel{background:#f0f2e8}.showtime #map{top:6px;left:6px;right:6px;width:auto;height:calc(100% - 12px)}.showtime #legend{left:10px;right:48px;width:auto;top:8px}.showtime .details #celebration{display:block}.showtime .details #reward{position:static;width:auto;min-height:0;margin:0;box-shadow:none}.showtime #route-details{display:block}
+
+.showtime header{height:auto;min-height:76px;padding:14px 5%}.showtime .brand{font-size:26px}@media(max-width:760px){.showtime header{padding:12px 16px}.showtime .brand{font-size:24px}}

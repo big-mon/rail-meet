@@ -39,3 +39,10 @@ footer{flex-wrap:wrap}.library-credit{font-weight:400!important;white-space:nowr
 .workspace{grid-template-columns:1fr;margin-top:18px}.alternatives{min-width:0}.celebration{display:block;padding:10px 12px}.alternatives .results-heading{margin:8px 0 12px}
 
 .details #celebration{background:none;border:0;padding:12px 0}.distance-rank{font-size:12px;white-space:nowrap}.route-row{gap:8px}
+
+/* The descriptive name and its single supporting sentence remain visible on mobile. */
+header,.showtime header{height:auto;min-height:76px;display:flex;flex-wrap:wrap;justify-content:flex-start;gap:6px 18px;padding:14px 5%}
+.brand,.showtime .brand{font-size:26px;letter-spacing:0;line-height:1.4;white-space:nowrap}
+.header-description{flex-basis:100%;margin:0;color:#e3e9f3;font-size:14px;line-height:1.7;font-weight:400}
+.showtime header #add{margin-left:auto}.showtime .preview-nav{margin-left:0}
+@media(max-width:760px){header,.showtime header{padding:12px 16px;gap:6px 12px}.brand,.showtime .brand{font-size:24px}.header-description{font-size:13px}.showtime header .brand{flex-basis:100%;order:-2}.showtime header #add{margin-left:0}.showtime .preview-nav{margin-left:auto}.showtime .header-description{order:-1}}
