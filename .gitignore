@@ -9,3 +9,5 @@ __pycache__/
 
 /public/network.json
 /public/basemap.json
+
+public/coverage.json

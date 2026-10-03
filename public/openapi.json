@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "みんなの中間駅 API",
-    "version": "1.0.0",
-    "description": "首都圏の対象76駅。線路形状距離で最大距離、距離差、合計距離、駅名の順に比較。時刻・運賃・所要時間は対象外。駅IDは駅一覧のidとの完全一致。無料・認証不要。POST本文は1024バイトまで、個人の住所や名前を送らないでください。30件/分/IP・300件/分はWorker実行単位のベストエフォート制限で、拠点横断の保証ではありません。429ではRetry-After秒待ってください。"
+    "version": "1.1.0",
+    "description": "首都圏の対象563駅。線路形状距離で最大距離、距離差、合計距離、駅名の順に比較。時刻・運賃・所要時間は対象外。駅IDは駅一覧のidとの完全一致。無料・認証不要。POST本文は1024バイトまで、個人の住所や名前を送らないでください。30件/分/IP・300件/分はWorker実行単位のベストエフォート制限で、拠点横断の保証ではありません。429ではRetry-After秒待ってください。"
   },
   "servers": [
     {
@@ -295,12 +295,20 @@
             "minItems": 2,
             "maxItems": 2,
             "description": "[longitude, latitude], WGS84"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Search aliases; use id unchanged for recommendations."
           }
         },
         "required": [
           "id",
           "name",
-          "coordinates"
+          "coordinates",
+          "aliases"
         ],
         "additionalProperties": false
       },
@@ -312,12 +320,12 @@
             "items": {
               "$ref": "#/components/schemas/Station"
             },
-            "maxItems": 100
+            "maxItems": 600
           },
           "count": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 100
+            "maximum": 600
           }
         },
         "required": [

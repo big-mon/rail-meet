@@ -21,8 +21,8 @@ async function bodyJson(request){
 }
 export function createApi(data,{now=Date.now}={}){
  validate(data);
- if(data.stations.length>100||data.edges.length>200||data.edges.reduce((n,e)=>n+e.coords.length,0)>10000)throw Error('API dataset exceeds the small-network budget');
- const stations=data.stations.map(s=>({id:s.id,name:s.id,coordinates:s.coords}));
+ if(data.stations.length>600||data.edges.length>1000||data.edges.reduce((n,e)=>n+e.coords.length,0)>20000)throw Error('API dataset exceeds the small-network budget');
+ const stations=data.stations.map(s=>({id:s.id,name:s.id,coordinates:s.coords,aliases:s.aliases||[]}));
  let windowStart=now(),total=0;const clients=new Map(),cache=new Map();
  // ponytail: isolate-local burst protection, NOT a global quota or billing cap.
  // A global guarantee needs an approved platform limiter/budget configuration before release.
@@ -44,7 +44,7 @@ export function createApi(data,{now=Date.now}={}){
   if(method==='GET'){
    const q=url.searchParams.get('q')||'';
    if(q.length>40||url.searchParams.getAll('q').length>1||[...url.searchParams.keys()].some(k=>k!=='q'))return error(400,'invalid_query','qは40文字以内で1件だけ指定できます。');
-   const matches=stations.filter(s=>s.name.includes(q));
+   const matches=stations.filter(s=>s.name.includes(q)||s.aliases.some(a=>a.includes(q)));
    return json({stations:matches,count:matches.length},200,{'Cache-Control':'public, max-age=3600'});
   }
   if(url.search)return error(400,'invalid_query','計算条件はJSON本文だけに指定してください。');

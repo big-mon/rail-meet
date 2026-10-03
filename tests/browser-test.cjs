@@ -8,13 +8,13 @@ const assert=require('node:assert/strict');const fs=require('node:fs');
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r.url()));
  // All rendering data is local; no external map requests are permitted.
  await page.goto((process.env.TEST_URL||'http://127.0.0.1:4173'));await openResults(page);await page.waitForSelector('.candidate');
- assert.equal(await page.locator('.candidate').count(),3);assert.match(await page.locator('#meeting-name').textContent(),/錦糸町/);
+ assert.equal(await page.locator('.candidate').count(),3);assert.match(await page.locator('#meeting-name').textContent(),/葛西臨海公園/);
  await page.waitForFunction(()=>document.querySelector('#background-status').textContent.includes('概略図'));
  assert(await page.locator('.person-route').count()>10);results.push('Initial 千葉 / 横浜; three candidates; vector prefecture/coast background');
  await page.screenshot({path:'evidence/desktop-default.png',fullPage:true});
  const before=await page.locator('.person-route').evaluateAll(els=>els.map(e=>e.getAttribute('d')).join('|'));
  const beforeDetail=await page.locator('#route-details').textContent();
- await page.locator('[data-candidate="1"]').click();assert.match(await page.locator('#meeting-name').textContent(),/亀戸/);
+ await page.locator('[data-candidate="1"]').click();assert.match(await page.locator('#meeting-name').textContent(),/東陽町/);
  assert.notEqual(await page.locator('#route-details').textContent(),beforeDetail);
  assert.notEqual(await page.locator('.person-route').evaluateAll(els=>els.map(e=>e.getAttribute('d')).join('|')),before);
  results.push('Candidate switch updates station, distance and rail path');
@@ -29,7 +29,7 @@ const assert=require('node:assert/strict');const fs=require('node:fs');
  await page.locator('[data-remove="3"]').click();await page.locator('[data-remove="2"]').click();results.push('2–4 participant add/remove limits');
  // Demonstrate the requested added stations in the final screenshots.
  await page.locator('#add').click();await page.locator('#origin-2').selectOption('渋谷');
- assert.equal(await page.locator('#origin-0 option').count(),76);
+ assert.equal(await page.locator('#origin-0 option').count(),563);
  for(const station of ['渋谷','新宿','池袋','御茶ノ水','浅草橋','両国','吉祥寺','三鷹'])assert(await page.locator(`#origin-0 option[value="${station}"]`).count()||await page.locator('#origin-0').evaluate((el,s)=>[...el.options].some(o=>o.value===s),station));
  for(const pair of [['渋谷','千葉'],['新宿','横浜'],['池袋','津田沼'],['三鷹','千葉']]){await page.locator('#origin-0').selectOption(pair[0]);await page.locator('#origin-1').selectOption(pair[1]);assert.equal(await page.locator('.candidate').count(),3);assert(await page.locator('.person-route').count()>5);}
  await page.locator('#origin-0').selectOption('千葉');await page.locator('#origin-1').selectOption('横浜');

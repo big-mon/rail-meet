@@ -77,11 +77,13 @@ for line,label,names in CHAINS:
   path=[qa]+trunk[ia+1:ib+1]+[qb]
   path=[p for i,p in enumerate(path) if i==0 or p!=path[i-1]]
   km=sum(distance(u,v) for u,v in zip(path,path[1:]));assert 0<km<5,(a,b,km)
-  result['edges'].append({'a':a,'b':b,'line':label,'sourceLine':line,'km':km,'coords':path})
+  result['edges'].append({'a':a,'b':b,'line':label,'sourceOperator':'東日本旅客鉄道','sourceLine':line,'km':km,'coords':path})
   print(a,b,round(km,3),len(path))
 popular='東京 新宿 渋谷 池袋 横浜 千葉 品川 上野 秋葉原 錦糸町 吉祥寺 三鷹 船橋 津田沼'.split()
 ordered=popular+[s for s in locations if s not in popular]
 result['stations']=[{'id':s,'coords':locations[s]} for s in ordered if s in locations]
+from expand_network import expand
+expand(ROOT,result,sections,stations,distance,project,route)
 (ROOT/'public/network.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':')))
 (ROOT/'evidence').mkdir(exist_ok=True)
 (ROOT/'evidence/data-audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2))
