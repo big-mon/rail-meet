@@ -13,3 +13,5 @@
 .showtime #map{top:6px;height:calc(100% - 206px)}.showtime #legend{top:8px;bottom:auto}.showtime .show-rays{inset:0}@media(max-width:760px){.showtime #map{top:6px;height:calc(var(--stage-height,520px) - 230px)}}
 
 .showtime #legend{pointer-events:none}.showtime #legend button{pointer-events:auto}
+
+.showtime .map-panel{background:#f0f2e8}.showtime #map{top:6px;left:6px;right:6px;width:auto;height:calc(100% - 12px)}.showtime #legend{left:10px;right:48px;width:auto;top:8px}.showtime .details #celebration{display:block}.showtime .details #reward{position:static;width:auto;min-height:0;margin:0;box-shadow:none}.showtime #route-details{display:block}

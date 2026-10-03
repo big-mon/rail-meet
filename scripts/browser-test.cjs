@@ -18,7 +18,7 @@ const assert=require('node:assert/strict');const fs=require('node:fs');
  assert.notEqual(await page.locator('#route-details').textContent(),beforeDetail);
  assert.notEqual(await page.locator('.person-route').evaluateAll(els=>els.map(e=>e.getAttribute('d')).join('|')),before);
  results.push('Candidate switch updates station, distance and rail path');
- await page.locator('#origin-1').selectOption('千葉');assert.match(await page.locator('#details-title').textContent(),/千葉/);assert.equal(await page.locator('.person-route').count(),0);assert.match(await page.locator('#route-details').textContent(),/0.0/);
+ await page.locator('#origin-1').selectOption('千葉');assert.match(await page.locator('#meeting-name').textContent(),/千葉/);assert.equal(await page.locator('.person-route').count(),0);assert.match(await page.locator('#route-details').textContent(),/0.0/);
  assert.match(await page.locator('#status').textContent(),/別々/);results.push('Same station and duplicate participants produce zero-distance result');
  await page.locator('#origin-1').selectOption('横浜');await page.locator('#add').click();await page.locator('#origin-2').selectOption('千葉');
  assert(await page.locator('.person-0').count()>0);assert(await page.locator('.person-2').count()>0);

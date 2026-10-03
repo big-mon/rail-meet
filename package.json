@@ -9,7 +9,10 @@
     "test:portal": "node scripts/portal-browser-test.cjs",
     "test:search-action": "node scripts/search-action-browser-test.cjs",
     "test:result-layout": "node scripts/result-layout-browser-test.cjs",
-    "test:loop": "node scripts/loop-browser-test.cjs"
+    "test:loop": "node scripts/loop-browser-test.cjs",
+    "test:arrival": "node scripts/arrival-browser-test.cjs",
+    "test:ranking": "node scripts/ranking-layout-browser-test.cjs",
+    "test:fit": "node scripts/fit-boundary-browser-test.cjs"
   },
   "devDependencies": {
     "playwright": "1.57.0"
