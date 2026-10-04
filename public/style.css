@@ -23,8 +23,6 @@ p{line-height:1.75;margin:8px 0;color:var(--muted);font-size:14px}
 .origin-field{flex:1;min-width:175px}
 .origin-field label{font-size:12px;display:flex;gap:7px;align-items:center;margin-bottom:6px;font-weight:650}
 .person-dot{display:inline-flex;justify-content:center;align-items:center;background:var(--person);color:white;border-radius:50%;font-weight:800}
-.select-row{display:flex;gap:5px}
-.select-row select{width:100%;min-width:0;background:#fafbf8;border:1px solid #cbd6ce;border-radius:8px;padding:10px 12px;color:#1d3431;font-size:17px;font-weight:650;height:46px}
 .remove{padding:4px 12px;font-size:20px}
 .small{font-size:12px;line-height:1.7;color:var(--muted)}
 #status{font-size:13px;margin:14px 2px}
@@ -255,3 +253,12 @@ header{height:auto;min-height:76px;display:flex;flex-wrap:wrap;justify-content:f
 .legend-item{border:1px solid #c7d3ca;border-radius:9px;background:#fff;color:var(--green);font-weight:650}
 
 .brand-name{font:inherit;letter-spacing:inherit;margin:0}
+
+/* Native dependent selects keep the station list short and keyboard accessible. */
+.origin-field{position:relative;margin:0;padding:12px;border:1px solid var(--line);border-radius:10px;min-width:280px}
+.origin-field legend{font-size:13px;font-weight:700;padding:0 5px;display:flex;gap:7px;align-items:center}
+.origin-field .remove{position:absolute;right:6px;top:-28px;min-height:32px;padding:0 10px}
+.origin-field .picker-row{display:grid;grid-template-columns:54px minmax(0,1fr);gap:6px;align-items:center;margin-bottom:8px}
+.picker-row select{width:100%;min-width:0;background:#fafbf8;border:1px solid #cbd6ce;border-radius:8px;padding:10px 8px;color:#1d3431;height:46px;font-size:16px}
+.line-direction{font-size:11px;line-height:1.5;margin:0 0 0 60px;overflow-wrap:anywhere}
+@media(max-width:760px){.origin-field{flex-basis:100%;min-width:0}.origin-grid{gap:18px}.origin-field .picker-row{grid-template-columns:48px minmax(0,1fr)}.line-direction{margin-left:54px}}

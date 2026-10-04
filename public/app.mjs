@@ -8,7 +8,7 @@ const $=id=>document.getElementById(id), colors=['#2169be','#bf4c1d','#8a45b5','
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ll=p=>[p[1],p[0]];
 let data,origins=['千葉','横浜'],candidates=[],selected=0,map,overlay,routeBounds,motionLayer,motionFrame;
-let hasSearched=false;
+let hasSearched=false,filters=[];
 // Start both data requests together; background failure never blocks routing.
 const basemapReady=fetch('./basemap.json',{signal:AbortSignal.timeout(10000)}).then(r=>{if(!r.ok)throw Error('basemap');return r.json();}).catch(()=>null);
 const feedbackAnimations=new Set();
@@ -16,11 +16,30 @@ const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 let loopWanted=false,mapOnScreen=false;
 reducedMotion.addEventListener('change',()=>{cancelPortal();loopWanted=hasSearched&&!$('results').hidden;syncRailMotion();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelPortal();loopWanted=hasSearched&&!$('results').hidden;}syncRailMotion();});
-function renderInputs(){
- $('origins').innerHTML=origins.map((value,i)=>`<div class="origin-field"><label for="origin-${i}"><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>参加者 ${letters[i]}</label><div class="select-row"><select id="origin-${i}" ${data?'':'disabled'} aria-label="参加者 ${letters[i]} の出発駅">${(data?.stations||origins.map(id=>({id}))).map(s=>`<option${s.id===value?' selected':''}>${esc(s.id)}</option>`).join('')}</select>${origins.length>2?`<button type="button" class="remove" data-remove="${i}" aria-label="参加者 ${letters[i]} を削除">×</button>`:''}</div></div>`).join('');
- origins.forEach((_,i)=>$(`origin-${i}`).addEventListener('change',e=>{origins[i]=e.target.value;updateOrigins();joinPerson(i);}));
- document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{origins.splice(Number(b.dataset.remove),1);renderInputs();updateOrigins();$('add').focus({preventScroll:true});}));
+function renderInputs(focus){
+ const routes=data?.selectionRoutes||[],operators=[...new Map(routes.map(r=>[r.operator,r.operatorName])).entries()];
+ const options=(items,value)=>items.map(([id,name])=>`<option value="${esc(id)}"${id===value?' selected':''}>${esc(name)}</option>`).join('');
+ $('origins').innerHTML=origins.map((value,i)=>{
+  if(!filters[i]){const r=routes.find(r=>r.stations.some(s=>s.id===value));filters[i]={operator:r?.operator||'',line:r?.id||''};}
+  const f=filters[i],lines=routes.filter(r=>r.operator===f.operator),line=lines.find(r=>r.id===f.line);
+  const field=(kind,label,items,chosen)=>`<label class="picker-row" for="${kind}-${i}"><span>${label}</span><select id="${kind}-${i}" ${!data||(kind==='line'&&!f.operator)||(kind==='origin'&&!line)?'disabled':''} aria-label="参加者 ${letters[i]} の${label}" aria-describedby="picker-help">${options([['',label+'を選択']],chosen)}${kind==='origin'&&line?.groups?line.groups.map(g=>`<optgroup label="${esc(g.label)}">${options(g.stations.map(s=>[s.id,s.name]),chosen)}</optgroup>`).join(''):options(items,chosen)}</select></label>`;
+  return `<fieldset class="origin-field"><legend><span class="person-dot" style="--person:${colors[i]}">${letters[i]}</span>参加者 ${letters[i]}</legend>${origins.length>2?`<button type="button" class="remove" data-remove="${i}" aria-label="参加者 ${letters[i]} を削除">×</button>`:''}${field('operator','鉄道会社',operators,f.operator)}${field('line','路線',lines.map(r=>[r.id,r.label]),f.line)}${field('origin','出発駅',line?.stations.map(s=>[s.id,s.name])||(!data&&value?[[value,value]]:[]),value)}${line?`<p class="line-direction">${line.groups?'駅一覧の見出しで方面・区間を区別しています。':esc(line.stations[0].name)+' → '+esc(line.stations.at(-1).name)+(line.loop?' → '+esc(line.stations[0].name)+'（一周）':'')}</p>`:''}</fieldset>`;
+ }).join('');
+ origins.forEach((_,i)=>{
+  $(`operator-${i}`).addEventListener('change',e=>{
+   const operator=e.target.value,r=routes.find(r=>r.operator===operator&&r.stations.some(s=>s.id===origins[i]));
+   filters[i]={operator,line:r?.id||''};if(!r)origins[i]='';renderInputs(`operator-${i}`);updateOrigins();
+  });
+  $(`line-${i}`).addEventListener('change',e=>{
+   filters[i].line=e.target.value;const r=routes.find(r=>r.id===e.target.value);
+   if(!r?.stations.some(s=>s.id===origins[i]))origins[i]='';renderInputs(`line-${i}`);updateOrigins();
+  });
+  $(`origin-${i}`).addEventListener('change',e=>{origins[i]=e.target.value;updateOrigins();joinPerson(i);});
+ });
+ document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{const i=Number(b.dataset.remove);origins.splice(i,1);filters.splice(i,1);renderInputs();updateOrigins();$('add').focus({preventScroll:true});}));
  $('add').disabled=!data||origins.length>=4;
+ $('find').disabled=!data||origins.some(s=>!s);
+ if(focus)$(focus).focus({preventScroll:true});
 }
 function clearSharedLocation(){
  const p=new URLSearchParams(location.hash.slice(1));
@@ -28,6 +47,9 @@ function clearSharedLocation(){
 }
 function updateOrigins(){
  clearSharedLocation();
+ $('find').disabled=origins.some(s=>!s);
+ if($('find').disabled){stopMotion();$('results').hidden=true;$('status').className='';$('status').textContent='全員の鉄道会社・路線・出発駅を選んでください。';return;}
+ if(!hasSearched)$('status').textContent='';
  if(hasSearched)calculate();else stopMotion();
 }
 function calculate(animate=false){
@@ -37,6 +59,9 @@ function calculate(animate=false){
   candidates=recommend(data,origins);selected=0;
   if(!candidates.length)throw Error('全員が到達できる集合駅がありません。出発駅を変更してください。');
   $('status').className='';$('status').textContent=new Set(origins).size<origins.length?'同じ出発駅も、別々の参加者として比較しています。':'';
+  const gaps=(data.source?.excludedConnections||[]).filter(pair=>pair.every(s=>origins.includes(s))||candidates.some(c=>c.routes.some(r=>pair.every(s=>r.stations.includes(s)))));
+  $('coverage-note').hidden=!gaps.length;
+  $('coverage-note').textContent=gaps.length?'対象範囲の境界により '+gaps.map(p=>p.join('〜')).join('、')+' は未収録です。表示経路には迂回が含まれる場合があります。':'';
   $('results').hidden=false;
   renderCandidates();renderSelection();if(animate)playMotion();else runRailMotion();
  }catch(e){$('results').hidden=true;$('status').textContent=e.message;$('status').className='error';}
@@ -127,10 +152,12 @@ function fitRoutes(){
  map.fitBounds(routeBounds,options);
 }
 async function load(){
- data=undefined;renderInputs();$('find').disabled=true;$('status').className='';$('status').textContent='鉄道データを読み込んでいます…';$('results').hidden=true;$('add').disabled=true;
+ data=undefined;filters=[];renderInputs();$('find').disabled=true;$('status').className='';$('status').textContent='鉄道データを読み込んでいます…';$('results').hidden=true;$('add').disabled=true;
  try{
   const response=await fetch('./network.json',{signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error('load');data=validate(await response.json());
-  if(!window.L)throw Error('map');renderInputs();$('status').textContent='';$('find').disabled=false;applyShare();
+  if(!window.L)throw Error('map');
+  if(!Array.isArray(data.selectionRoutes)||data.stations.some(s=>!data.selectionRoutes.some(r=>r.stations.some(t=>t.id===s.id))))throw Error('selection');
+  filters=[];renderInputs();$('status').textContent='';$('find').disabled=origins.some(s=>!s);applyShare();
  }catch{
   $('status').className='error';$('status').innerHTML='データを読み込めませんでした。通信状態を確認して再試行してください。<button class="retry" type="button" id="retry">再読み込み</button>';
   $('retry').addEventListener('click',()=>window.L?load():location.reload());
@@ -140,7 +167,7 @@ function applyShare(){
  if(!data)return;
  try{
   const shared=readShare(location.hash,data);if(!shared)return;
-  origins=shared.origins;renderInputs();hasSearched=true;calculate();
+  origins=shared.origins;filters=[];renderInputs();hasSearched=true;calculate();
   const index=candidates.findIndex(c=>c.station===shared.station);
   if(index<0)throw Error('共有された集合駅は現在の上位3候補にありません。出発駅から検索し直してください。');
   selected=index;renderCandidates();renderSelection();runRailMotion();

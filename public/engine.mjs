@@ -18,14 +18,17 @@ export function shortest(data,start){
  const graph=new Map(data.stations.map(s=>[s.id,[]]));
  if(!graph.has(start))throw Error('対象駅から選択してください。');
  data.edges.forEach((e,i)=>{graph.get(e.a).push({to:e.b,i});graph.get(e.b).push({to:e.a,i});});
- const distances=new Map([[start,0]]),previous=new Map(),todo=new Set(graph.keys());
- // ponytail: 76 stations; linear scan is clearer than a heap here. Revisit for thousands of stations.
- while(todo.size){
-  const u=[...todo].reduce((a,b)=>(distances.get(a)??Infinity)<=(distances.get(b)??Infinity)?a:b);
-  const d=distances.get(u);if(d===undefined)break;todo.delete(u);
+ const distances=new Map([[start,0]]),previous=new Map();
+ const order=new Map(data.stations.map((s,i)=>[s.id,i]));
+ const heap=[],less=(a,b)=>a[0]<b[0]||(a[0]===b[0]&&order.get(a[1])<order.get(b[1]));
+ function push(item){let i=heap.length;heap.push(item);while(i){const p=(i-1)>>1;if(!less(item,heap[p]))break;heap[i]=heap[p];i=p;}heap[i]=item;}
+ function pop(){const first=heap[0],last=heap.pop();if(heap.length){let i=0;while(i*2+1<heap.length){let c=i*2+1;if(c+1<heap.length&&less(heap[c+1],heap[c]))c++;if(!less(heap[c],last))break;heap[i]=heap[c];i=c;}heap[i]=last;}return first;}
+ push([0,start]);
+ while(heap.length){
+  const [d,u]=pop();if(d!==distances.get(u))continue;
   for(const {to,i} of graph.get(u)){
    const next=d+data.edges[i].km;
-   if(next<(distances.get(to)??Infinity)){distances.set(to,next);previous.set(to,{from:u,edge:i});}
+   if(next<(distances.get(to)??Infinity)){distances.set(to,next);previous.set(to,{from:u,edge:i});push([next,to]);}
   }
  }
  return {distances,previous,start};
